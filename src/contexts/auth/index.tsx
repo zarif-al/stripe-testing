@@ -39,7 +39,7 @@ export default function AuthContextProvider({
 	async function getCurrentUser() {
 		const user = await auth.currentUser;
 		console.log(user);
-		try {
+		/* 		try {
 			const docRef = await addDoc(collection(db, "users"), {
 				first: "Ada",
 				last: "Lovelace",
@@ -48,7 +48,7 @@ export default function AuthContextProvider({
 			console.log("Document written with ID: ", docRef.id);
 		} catch (e) {
 			console.error("Error adding document: ", e);
-		}
+		} */
 	}
 
 	// async function onCreateUser(input: onCreateUserInput): Promise<void> {
