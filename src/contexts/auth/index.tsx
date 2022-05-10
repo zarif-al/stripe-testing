@@ -1,12 +1,15 @@
 import React, { createContext, useState, useEffect } from "react";
-import { User } from "@firebase/auth-types";
 import { auth, db } from "src/auth/Firebase";
 import {
 	createUserWithEmailAndPassword,
 	signInWithEmailAndPassword,
 	signOut,
+	User,
+	UserCredential,
+	deleteUser,
 } from "firebase/auth";
 import { collection, addDoc } from "firebase/firestore";
+import { useRouter } from "next/router";
 
 interface Props {
 	children: React.ReactNode;
@@ -17,10 +20,11 @@ interface IUser {
 	name: string;
 	email: string;
 	stripeID: string | null;
+	fireId: string;
 }
 
 export const AuthContext = createContext({
-	createFirebaseUser: (email: string, password: string) => {},
+	createFirebaseUser: (name: string, email: string, password: string) => {},
 	signIn: (email: string, password: string): void => {},
 	signOut: () => {},
 	error: {} as string | null,
@@ -32,36 +36,46 @@ export default function AuthContextProvider({
 	children,
 	route,
 }: Props): JSX.Element {
+	const router = useRouter();
 	const [loading, setLoading] = useState(true);
 	const [firebaseUser, setFirebaseUser] = useState<User | null>();
 	const [error, setError] = useState<string | null>(null);
 
-	async function getCurrentUser() {
+	async function getCurrentUser(): Promise<User | null> {
 		const user = await auth.currentUser;
-		console.log(user);
-		/* 		try {
-			const docRef = await addDoc(collection(db, "users"), {
-				first: "Ada",
-				last: "Lovelace",
-				born: 1815,
-			});
-			console.log("Document written with ID: ", docRef.id);
-		} catch (e) {
-			console.error("Error adding document: ", e);
-		} */
+		return user;
 	}
 
-	// async function onCreateUser(input: onCreateUserInput): Promise<void> {
-	// Create user in mongodb
-	// }
+	async function AddToDb(user: IUser): Promise<boolean> {
+		try {
+			await addDoc(collection(db, "users"), user);
+			return true;
+		} catch (e: any) {
+			e.name = "";
+			e.message = "Failed to add user to database";
+			throw new Error(e);
+		}
+	}
 
 	async function createFirebaseUser(
+		name: string,
 		email: string,
 		password: string
 	): Promise<void> {
 		await createUserWithEmailAndPassword(auth, email, password)
-			.then(() => {
-				setError(null);
+			.then(async (userCredential: UserCredential) => {
+				const user_auth = userCredential.user;
+				const user_db: IUser = {
+					name,
+					email,
+					stripeID: null,
+					fireId: user_auth.uid,
+				};
+				const userAdded = await AddToDb(user_db);
+				if (userAdded) {
+					setError(null);
+					router.push("/");
+				}
 			})
 			.catch((createUserError) => {
 				if (createUserError.code === "auth/email-already-in-use") {
@@ -70,8 +84,10 @@ export default function AuthContextProvider({
 					setError("This email address is invalid.");
 				} else if (createUserError.code === "auth/operation-not-allowed") {
 					setError("Operation not allowed. Please contact support.");
-				} else {
+				} else if (createUserError.code === "auth/weak-password") {
 					setError("Please use a stronger password");
+				} else {
+					setError(createUserError.toString());
 				}
 			});
 	}
@@ -103,15 +119,20 @@ export default function AuthContextProvider({
 		});
 	}
 
-	function onAuthStateChanged(authUser: User | null) {
-		setFirebaseUser(authUser);
-		setError(null);
-	}
-
 	useEffect(() => {
 		setError(null);
-		getCurrentUser();
-	}, [route]);
+		async function authCheck() {
+			const user = await getCurrentUser();
+			if (
+				user === null &&
+				router.pathname !== "/login" &&
+				router.pathname !== "/signup"
+			) {
+				router.push("/login");
+			}
+		}
+		authCheck();
+	}, [route, router]);
 
 	return (
 		<AuthContext.Provider
