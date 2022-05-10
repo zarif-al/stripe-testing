@@ -46,14 +46,14 @@ export default function AuthContextProvider({
 		return user;
 	}
 
-	async function AddToDb(user: IUser): Promise<boolean> {
+	async function AddToDb(user: IUser, user_auth: User): Promise<void> {
 		try {
 			await addDoc(collection(db, "users"), user);
-			return true;
+			setError(null);
+			router.push("/");
 		} catch (e: any) {
-			e.name = "";
-			e.message = "Failed to add user to database";
-			throw new Error(e);
+			deleteUser(user_auth);
+			setError("Failed to add user to database");
 		}
 	}
 
@@ -71,11 +71,7 @@ export default function AuthContextProvider({
 					stripeID: null,
 					fireId: user_auth.uid,
 				};
-				const userAdded = await AddToDb(user_db);
-				if (userAdded) {
-					setError(null);
-					router.push("/");
-				}
+				await AddToDb(user_db, user_auth);
 			})
 			.catch((createUserError) => {
 				if (createUserError.code === "auth/email-already-in-use") {
@@ -86,8 +82,6 @@ export default function AuthContextProvider({
 					setError("Operation not allowed. Please contact support.");
 				} else if (createUserError.code === "auth/weak-password") {
 					setError("Please use a stronger password");
-				} else {
-					setError(createUserError.toString());
 				}
 			});
 	}
