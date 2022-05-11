@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { AuthContext } from "src/contexts/auth";
 
 const Navigation = () => {
-	const { signOut } = useContext(AuthContext);
+	const { signOut, firebaseUser } = useContext(AuthContext);
 
 	return (
 		<div
@@ -11,21 +11,22 @@ const Navigation = () => {
 				top: 0,
 				display: "flex",
 				justifyContent: "flex-end",
-				padding: "0.8rem",
+				alignItems: "center",
+				height: "3rem",
 				backgroundColor: "#DCDCDC",
 				borderBottom: "2px solid black",
 			}}
 		>
-			<button
-				style={{
-					padding: "0.2rem",
-				}}
-				onClick={() => {
-					signOut();
-				}}
-			>
-				Sign Out
-			</button>
+			{firebaseUser && (
+				<button
+					style={{ height: "2rem" }}
+					onClick={() => {
+						signOut();
+					}}
+				>
+					Sign Out
+				</button>
+			)}
 		</div>
 	);
 };

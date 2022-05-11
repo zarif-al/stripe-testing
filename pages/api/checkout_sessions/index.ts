@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
+import { auth, db } from "src/auth/Firebase";
 
 const stripe = new Stripe(process.env.NEXT_PRIVATE_STRIPE_SECRET_KEY!, {
 	apiVersion: "2020-08-27",
@@ -23,8 +24,8 @@ export default async function handler(
 						quantity: 1,
 					},
 				],
-				success_url: `${req.headers.origin}/?success=true`,
-				cancel_url: `${req.headers.origin}/?success=false`,
+				success_url: `${req.headers.origin}/?success=true?session_id={CHECKOUT_SESSION_ID}`,
+				cancel_url: `${req.headers.origin}/?success=false?session_id={CHECKOUT_SESSION_ID}`,
 			};
 
 			const checkoutSession: Stripe.Checkout.Session =

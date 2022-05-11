@@ -10,6 +10,7 @@ import {
 } from "src/utils/interface/apiResponses";
 import { useRouter } from "next/router";
 import getStripe from "src/utils/stripe";
+import { AuthContext } from "src/contexts/auth";
 
 interface ProductElementProps {
 	product: Stripe.Product;
@@ -19,9 +20,20 @@ const stripe = getStripe();
 
 const Home: NextPage = () => {
 	const router = useRouter();
+	const { dbUser, UpdateUser } = useContext(AuthContext);
 	const [products, setProducts] = useState<Stripe.Product[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(true);
+
+	async function GetSessionAndUpdate(session_id: string): Promise<void> {
+		const customer_id = await fetch("/api/session", {
+			method: "POST",
+			body: JSON.stringify({ session_id: session_id }),
+		})
+			.then((res) => res.json())
+			.then((res) => res.customerId);
+		UpdateUser(customer_id);
+	}
 
 	useEffect(() => {
 		fetch("/api/products")
@@ -43,7 +55,11 @@ const Home: NextPage = () => {
 		// Check to see if this is a redirect back from Checkout
 		const query = new URLSearchParams(window.location.search);
 		if (query.get("success")) {
+			const session_id = query.get("session_id");
 			console.log("Order placed! You will receive an email confirmation.");
+			if (session_id) {
+				GetSessionAndUpdate(session_id);
+			}
 		}
 
 		if (query.get("canceled")) {
@@ -53,13 +69,6 @@ const Home: NextPage = () => {
 		}
 	}, []);
 
-	/* 	async function makePayment(priceId: string) {
-		const link = await fetch("api/checkout_sessions", {
-			method: "POST",
-			body: JSON.stringify({ priceId: priceId }),
-		});
-	}
- */
 	const Product = ({ product }: ProductElementProps): JSX.Element => {
 		const [priceLoading, setPriceLoading] = useState<boolean>(true);
 		const [priceError, setPriceError] = useState<ApiError | null>(null);
@@ -155,14 +164,24 @@ const Home: NextPage = () => {
 		);
 	};
 
+	const NoSubscription = (): JSX.Element => {
+		return (
+			<>
+				{loading && <div>Loading...</div>}
+				{error && <div>{error}</div>}
+				{products && productElements(products)}
+				<a href="https://stripe.com/docs/testing" target="no_blank">
+					Test Cards
+				</a>
+			</>
+		);
+	};
+
 	return (
 		<div className={styles.container}>
-			{loading && <div>Loading...</div>}
-			{error && <div>{error}</div>}
-			{products && productElements(products)}
-			<a href="https://stripe.com/docs/testing" target="no_blank">
-				Test Cards
-			</a>
+			{!dbUser && <div>Loading...</div>}
+			{dbUser && !dbUser.stripeID && <NoSubscription />}
+			{dbUser && dbUser.stripeID && <div>You are subscribed!</div>}
 		</div>
 	);
 };

@@ -9,7 +9,15 @@ import {
 	deleteUser,
 	onAuthStateChanged,
 } from "firebase/auth";
-import { collection, addDoc } from "firebase/firestore";
+import {
+	collection,
+	addDoc,
+	getDocs,
+	doc,
+	where,
+	query,
+	updateDoc,
+} from "firebase/firestore";
 import { useRouter } from "next/router";
 
 interface Props {
@@ -30,7 +38,13 @@ export const AuthContext = createContext({
 	signOut: () => {},
 	error: {} as string | null,
 	setError: (error: string | null) => {},
-	user: {} as IUser | undefined,
+	firebaseUser: {} as User | null | undefined,
+	dbUser: {} as IUser | null,
+	UpdateUser: async (stripeId: string): Promise<boolean> => {
+		return new Promise((resolve, reject) => {
+			resolve(false);
+		});
+	},
 });
 
 export default function AuthContextProvider({
@@ -43,10 +57,12 @@ export default function AuthContextProvider({
 		undefined
 	);
 	const [error, setError] = useState<string | null>(null);
+	const [dbUser, setDbUser] = useState<IUser | null>(null);
 
 	async function AddToDb(user: IUser, user_auth: User): Promise<void> {
 		try {
 			await addDoc(collection(db, "users"), user);
+			GetUser(user_auth);
 			setError(null);
 			router.push("/");
 		} catch (e: any) {
@@ -112,9 +128,42 @@ export default function AuthContextProvider({
 		});
 	}
 
+	async function GetUser(user: User) {
+		try {
+			const usersRef = collection(db, "users");
+			const q = query(usersRef, where("fireId", "==", user.uid));
+			const querySnap = await getDocs(q);
+			console.log(querySnap.docs[0].id);
+			setDbUser(querySnap.docs[0].data() as IUser);
+		} catch (e) {
+			console.log(e);
+		}
+	}
+
+	async function UpdateUser(stripeId: string): Promise<boolean> {
+		try {
+			const usersRef = collection(db, "users");
+			const q = query(usersRef, where("fireId", "==", firebaseUser!.uid));
+			const querySnap = await getDocs(q);
+			const userRef = doc(collection(db, "users"), querySnap.docs[0].id);
+			await updateDoc(userRef, {
+				stripeID: stripeId,
+			});
+			setDbUser({ ...(dbUser as IUser), stripeID: stripeId });
+			return true;
+		} catch (e: any) {
+			console.log(e);
+			return false;
+		}
+	}
+
 	// Auth state change listener
 	onAuthStateChanged(auth, (user: User | null) => {
 		if (user) {
+			if (!dbUser) {
+				GetUser(user);
+			}
+			console.log("done");
 			setFirebaseUser(user);
 		} else {
 			setFirebaseUser(null);
@@ -155,8 +204,9 @@ export default function AuthContextProvider({
 				signOut,
 				error,
 				setError,
-				user: undefined,
-				/* 	onCreateUser, */
+				firebaseUser,
+				dbUser,
+				UpdateUser,
 			}}
 		>
 			{children}

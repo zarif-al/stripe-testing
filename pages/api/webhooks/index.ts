@@ -3,6 +3,13 @@ import Cors from "micro-cors";
 import { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
 
+/* 
+TO TEST IN LOCAL
+stripe login
+stripe listen --forward-to localhost:3000/api/webhooks
+THEN PROCEED TO MAKE A PAYMENT 
+*/
+
 const stripe = new Stripe(process.env.NEXT_PRIVATE_STRIPE_SECRET_KEY!, {
 	apiVersion: "2020-08-27",
 });
