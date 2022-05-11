@@ -1,13 +1,16 @@
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
-import AuthContextProvider from "src/contexts/auth";
 import { useRouter } from "next/router";
+import Layout from "src/components/layout";
+import AuthContextProvider from "src/contexts/auth";
 
 function MyApp({ Component, pageProps }: AppProps) {
 	const router = useRouter();
 	return (
 		<AuthContextProvider route={router.pathname}>
-			<Component {...pageProps} />
+			<Layout>
+				<Component {...pageProps} />
+			</Layout>
 		</AuthContextProvider>
 	);
 }

@@ -4,6 +4,13 @@ import { AuthContext } from "src/contexts/auth";
 
 const Login = () => {
 	const { signIn, error } = useContext(AuthContext);
+	const [email, setEmail] = useState("");
+	const [password, setPassword] = useState("");
+
+	function onSubmit() {
+		signIn(email, password);
+	}
+
 	return (
 		<div
 			style={{
@@ -16,18 +23,34 @@ const Login = () => {
 		>
 			<h2>Login</h2>
 			<form
+				onSubmit={(e) => {
+					e.preventDefault();
+					onSubmit();
+				}}
 				style={{
 					display: "flex",
 					flexDirection: "column",
 					gap: "15px",
-					width: "40%",
+					width: "20%",
 				}}
 			>
-				<input type="text" placeholder="Email" style={{ padding: "0.4rem" }} />
+				<input
+					type="text"
+					placeholder="Email"
+					style={{ padding: "0.4rem" }}
+					value={email}
+					onChange={(e) => {
+						setEmail(e.target.value);
+					}}
+				/>
 				<input
 					type="password"
 					placeholder="Password"
 					style={{ padding: "0.4rem" }}
+					value={password}
+					onChange={(e) => {
+						setPassword(e.target.value);
+					}}
 				/>
 				<button type="submit" style={{ padding: "0.4rem", cursor: "pointer" }}>
 					Login

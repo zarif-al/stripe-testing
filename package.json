@@ -10,10 +10,17 @@
   },
   "dependencies": {
     "@firebase/auth-types": "^0.11.0",
+    "@stripe/react-stripe-js": "^1.7.2",
+    "@stripe/stripe-js": "^1.29.0",
+    "@types/micro": "^7.3.7",
+    "@types/micro-cors": "^0.1.2",
     "firebase": "^9.8.1",
+    "micro": "^9.3.4",
+    "micro-cors": "^0.1.1",
     "next": "12.1.6",
     "react": "18.1.0",
-    "react-dom": "18.1.0"
+    "react-dom": "18.1.0",
+    "stripe": "^9.0.0"
   },
   "devDependencies": {
     "@types/node": "17.0.31",

@@ -7,6 +7,7 @@ import {
 	User,
 	UserCredential,
 	deleteUser,
+	onAuthStateChanged,
 } from "firebase/auth";
 import { collection, addDoc } from "firebase/firestore";
 import { useRouter } from "next/router";
@@ -38,13 +39,10 @@ export default function AuthContextProvider({
 }: Props): JSX.Element {
 	const router = useRouter();
 	const [loading, setLoading] = useState(true);
-	const [firebaseUser, setFirebaseUser] = useState<User | null>();
+	const [firebaseUser, setFirebaseUser] = useState<User | null | undefined>(
+		undefined
+	);
 	const [error, setError] = useState<string | null>(null);
-
-	async function getCurrentUser(): Promise<User | null> {
-		const user = await auth.currentUser;
-		return user;
-	}
 
 	async function AddToDb(user: IUser, user_auth: User): Promise<void> {
 		try {
@@ -90,6 +88,7 @@ export default function AuthContextProvider({
 		await signInWithEmailAndPassword(auth, email, password)
 			.then(() => {
 				setError(null);
+				router.push("/");
 			})
 			.catch((signInError) => {
 				if (
@@ -108,25 +107,45 @@ export default function AuthContextProvider({
 	}
 
 	async function signOut(): Promise<void> {
-		await signOut().catch((signOutError) => {
+		await auth.signOut().catch((signOutError) => {
 			setError(signOutError.code);
 		});
 	}
 
+	// Auth state change listener
+	onAuthStateChanged(auth, (user: User | null) => {
+		if (user) {
+			setFirebaseUser(user);
+		} else {
+			setFirebaseUser(null);
+		}
+	});
+
 	useEffect(() => {
 		setError(null);
-		async function authCheck() {
-			const user = await getCurrentUser();
-			if (
-				user === null &&
-				router.pathname !== "/login" &&
-				router.pathname !== "/signup"
-			) {
-				router.push("/login");
-			}
+		if (firebaseUser === undefined) {
+			Loader();
 		}
-		authCheck();
-	}, [route, router]);
+
+		if (
+			firebaseUser === null &&
+			router.pathname !== "/login" &&
+			router.pathname !== "/signup"
+		) {
+			router.push("/login");
+		}
+
+		if (
+			firebaseUser !== null &&
+			(router.pathname === "/login" || router.pathname === "/signup")
+		) {
+			router.push("/");
+		}
+	}, [route, router, firebaseUser]);
+
+	function Loader(): JSX.Element {
+		return <div>Loading...</div>;
+	}
 
 	return (
 		<AuthContext.Provider

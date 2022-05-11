@@ -32,7 +32,7 @@ const SignUp = () => {
 					display: "flex",
 					flexDirection: "column",
 					gap: "15px",
-					width: "40%",
+					width: "20%",
 				}}
 			>
 				<input
