@@ -9,22 +9,19 @@ import {
 	StripeProductsResponse,
 } from "src/utils/interface/apiResponses";
 import { useRouter } from "next/router";
-import getStripe from "src/utils/stripe";
 import { AuthContext } from "src/contexts/auth";
 
 interface ProductElementProps {
 	product: Stripe.Product;
 }
 
-const stripe = getStripe();
-
 const Home: NextPage = () => {
 	const router = useRouter();
 	const { dbUser, UpdateUser } = useContext(AuthContext);
 	const [products, setProducts] = useState<Stripe.Product[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const [loading, setLoading] = useState(true);
-
+	const [loadingProducts, setLoadingProducts] = useState(true);
+	const [subscribedProduct, setSubscribedProduct] = useState(undefined);
 	async function GetSessionAndUpdate(session_id: string): Promise<void> {
 		const customer_id = await fetch("/api/session", {
 			method: "POST",
@@ -36,6 +33,23 @@ const Home: NextPage = () => {
 	}
 
 	useEffect(() => {
+		async function GetCustomer(customer_id: string): Promise<void> {
+			await fetch("/api/customer", {
+				method: "POST",
+				body: JSON.stringify({ customer_id: dbUser!.stripeID }),
+			})
+				.then((res) => res.json())
+				.then((res) => {
+					setSubscribedProduct(res.productId);
+				});
+		}
+
+		if (dbUser && dbUser.stripeID) {
+			GetCustomer(dbUser.stripeID);
+		}
+	}, [dbUser]);
+
+	useEffect(() => {
 		fetch("/api/products")
 			.then((res) => res.json())
 			.then((data: ApiError | StripeProductsResponse) => {
@@ -44,7 +58,7 @@ const Home: NextPage = () => {
 				} else {
 					setProducts(data.data);
 				}
-				setLoading(false);
+				setLoadingProducts(false);
 			})
 			.catch((err) => {
 				console.log(err);
@@ -167,7 +181,6 @@ const Home: NextPage = () => {
 	const NoSubscription = (): JSX.Element => {
 		return (
 			<>
-				{loading && <div>Loading...</div>}
 				{error && <div>{error}</div>}
 				{products && productElements(products)}
 				<a href="https://stripe.com/docs/testing" target="no_blank">
@@ -177,11 +190,61 @@ const Home: NextPage = () => {
 		);
 	};
 
+	const SubscribedProduct = ({ product }: ProductElementProps): JSX.Element => {
+		return (
+			<div
+				style={{
+					border: "1px solid #ccc",
+					borderRadius: "16px",
+					padding: "0.4rem",
+					display: "flex",
+					flexDirection: "column",
+					position: "relative",
+				}}
+			>
+				<div style={{ borderRadius: "12px", overflow: "hidden" }}>
+					<Image
+						src={product.images[0]}
+						alt={product.name}
+						height={400}
+						width={350}
+					/>
+				</div>
+
+				<h3 style={{ textAlign: "center" }}>{product.name}</h3>
+				<p style={{ textAlign: "center" }}>{product.description}</p>
+				<div
+					style={{
+						position: "absolute",
+						bottom: 0,
+						left: 0,
+						width: "100%",
+						textAlign: "center",
+						fontWeight: "500",
+						backgroundColor: "lightGrey",
+						borderRadius: "0px 0px 16px 16px",
+					}}
+				>
+					You are subscribed to this plan
+				</div>
+			</div>
+		);
+	};
+
 	return (
 		<div className={styles.container}>
-			{!dbUser && <div>Loading...</div>}
+			{loadingProducts && <div>Loading...</div>}
+			{!dbUser && <div>Loading DB...</div>}
 			{dbUser && !dbUser.stripeID && <NoSubscription />}
-			{dbUser && dbUser.stripeID && <div>You are subscribed!</div>}
+			{subscribedProduct && !loadingProducts && products && (
+				<SubscribedProduct
+					product={
+						products!.find((product) => {
+							return product.id === subscribedProduct;
+						}) as Stripe.Product
+					}
+				/>
+			)}
 		</div>
 	);
 };

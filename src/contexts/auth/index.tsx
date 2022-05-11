@@ -67,7 +67,7 @@ export default function AuthContextProvider({
 			router.push("/");
 		} catch (e: any) {
 			deleteUser(user_auth);
-			setError("Failed to add user to database");
+			console.log(e);
 		}
 	}
 
@@ -133,7 +133,6 @@ export default function AuthContextProvider({
 			const usersRef = collection(db, "users");
 			const q = query(usersRef, where("fireId", "==", user.uid));
 			const querySnap = await getDocs(q);
-			console.log(querySnap.docs[0].id);
 			setDbUser(querySnap.docs[0].data() as IUser);
 		} catch (e) {
 			console.log(e);
@@ -163,7 +162,6 @@ export default function AuthContextProvider({
 			if (!dbUser) {
 				GetUser(user);
 			}
-			console.log("done");
 			setFirebaseUser(user);
 		} else {
 			setFirebaseUser(null);
