@@ -27,7 +27,6 @@ export default async function handler(
 				await stripe.customers.retrieve(customer_id, {
 					expand: ["subscriptions"],
 				});
-
 			if ("deleted" in customer) {
 				res.status(500).json({ error: "Customer Deleted." });
 			} else if (customer.subscriptions) {

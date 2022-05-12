@@ -24,8 +24,8 @@ export default async function handler(
 						quantity: 1,
 					},
 				],
-				success_url: `${req.headers.origin}/?success=true?session_id={CHECKOUT_SESSION_ID}`,
-				cancel_url: `${req.headers.origin}/?success=false?session_id={CHECKOUT_SESSION_ID}`,
+				success_url: `${req.headers.origin}/?success=true?&session_id={CHECKOUT_SESSION_ID}`,
+				cancel_url: `${req.headers.origin}/?success=false?&session_id={CHECKOUT_SESSION_ID}`,
 			};
 
 			const checkoutSession: Stripe.Checkout.Session =

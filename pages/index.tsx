@@ -23,13 +23,16 @@ const Home: NextPage = () => {
 	const [loadingProducts, setLoadingProducts] = useState(true);
 	const [subscribedProduct, setSubscribedProduct] = useState(undefined);
 	async function GetSessionAndUpdate(session_id: string): Promise<void> {
+		console.log("GET SESSION UPDATE");
 		const customer_id = await fetch("/api/session", {
 			method: "POST",
 			body: JSON.stringify({ session_id: session_id }),
 		})
 			.then((res) => res.json())
 			.then((res) => res.customerId);
-		UpdateUser(customer_id);
+
+		await UpdateUser(customer_id);
+		router.push("/");
 	}
 
 	useEffect(() => {
@@ -68,7 +71,7 @@ const Home: NextPage = () => {
 	useEffect(() => {
 		// Check to see if this is a redirect back from Checkout
 		const query = new URLSearchParams(window.location.search);
-		if (query.get("success")) {
+		if (query.get("success") && dbUser) {
 			const session_id = query.get("session_id");
 			console.log("Order placed! You will receive an email confirmation.");
 			if (session_id) {
@@ -81,7 +84,7 @@ const Home: NextPage = () => {
 				"Order canceled -- continue to shop around and checkout when you’re ready."
 			);
 		}
-	}, []);
+	}, [dbUser]);
 
 	const Product = ({ product }: ProductElementProps): JSX.Element => {
 		const [priceLoading, setPriceLoading] = useState<boolean>(true);
@@ -126,33 +129,62 @@ const Home: NextPage = () => {
 				<h3 style={{ textAlign: "center" }}>{product.name}</h3>
 				<p style={{ textAlign: "center" }}>{product.description}</p>
 				<div style={{ display: "flex", justifyContent: "center" }}>
-					{priceLoading && <div>...Loading</div>}
-					{priceError && <div>{priceError.error}</div>}
-					{price && price.recurring && price.unit_amount && product.default_price && (
-						<div
-							style={{
-								display: "flex",
-								flexDirection: "column",
-								alignItems: "center",
-								fontWeight: "500",
-								gap: "5px",
-							}}
-						>
-							{price.unit_amount / 100 + "$"}/{price.recurring.interval}
-							<form action="/api/checkout_sessions" method="POST">
-								<input
-									type="hidden"
-									name="priceId"
-									value={product.default_price as string}
-								/>
-								<button type="submit" role="link">
-									Subscribe
-								</button>
-							</form>
-						</div>
+					{subscribedProduct === product.id ? (
+						<p>You are subscribed</p>
+					) : (
+						<Price
+							priceLoading={priceLoading}
+							priceError={priceError}
+							price={price}
+							product={product}
+						/>
 					)}
 				</div>
 			</div>
+		);
+	};
+
+	interface PriceProps {
+		priceLoading: boolean;
+		priceError: ApiError | null;
+		price: Stripe.Price | null;
+		product: Stripe.Product;
+	}
+
+	const Price = ({
+		priceLoading,
+		priceError,
+		price,
+		product,
+	}: PriceProps): JSX.Element => {
+		return (
+			<>
+				{priceLoading && <div>...Loading</div>}
+				{priceError && <div>{priceError.error}</div>}
+				{price && price.recurring && price.unit_amount && product.default_price && (
+					<div
+						style={{
+							display: "flex",
+							flexDirection: "column",
+							alignItems: "center",
+							fontWeight: "500",
+							gap: "5px",
+						}}
+					>
+						{price.unit_amount / 100 + "$"}/{price.recurring.interval}
+						<form action="/api/checkout_sessions" method="POST">
+							<input
+								type="hidden"
+								name="priceId"
+								value={product.default_price as string}
+							/>
+							<button type="submit" role="link">
+								Subscribe
+							</button>
+						</form>
+					</div>
+				)}
+			</>
 		);
 	};
 
@@ -178,7 +210,7 @@ const Home: NextPage = () => {
 		);
 	};
 
-	const NoSubscription = (): JSX.Element => {
+	const SubscriptionList = (): JSX.Element => {
 		return (
 			<>
 				{error && <div>{error}</div>}
@@ -231,22 +263,32 @@ const Home: NextPage = () => {
 		);
 	};
 
-	return (
-		<div className={styles.container}>
-			{loadingProducts && <div>Loading...</div>}
-			{!dbUser && <div>Loading ...</div>}
-			{dbUser && !dbUser.stripeID && <NoSubscription />}
-			{subscribedProduct && !loadingProducts && products && (
-				<SubscribedProduct
-					product={
-						products!.find((product) => {
-							return product.id === subscribedProduct;
-						}) as Stripe.Product
-					}
-				/>
-			)}
-		</div>
-	);
+	if (loadingProducts || !dbUser) {
+		return <div>Loading...</div>;
+	} else {
+		return (
+			<div className={styles.container}>
+				<SubscriptionList />
+			</div>
+		);
+	}
+
+	/* 		return (
+			<div className={styles.container}>
+				{loadingProducts && <div>Loading...</div>}
+				{!dbUser && <div>Loading ...</div>}
+				{dbUser && !dbUser.stripeID &&}
+				{subscribedProduct && !loadingProducts && products && (
+					<SubscribedProduct
+						product={
+							products!.find((product) => {
+								return product.id === subscribedProduct;
+							}) as Stripe.Product
+						}
+					/>
+				)}
+			</div>
+		); */
 };
 
 export default Home;

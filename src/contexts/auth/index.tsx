@@ -142,7 +142,7 @@ export default function AuthContextProvider({
 	async function UpdateUser(stripeId: string): Promise<boolean> {
 		try {
 			const usersRef = collection(db, "users");
-			const q = query(usersRef, where("fireId", "==", firebaseUser!.uid));
+			const q = query(usersRef, where("email", "==", dbUser!.email));
 			const querySnap = await getDocs(q);
 			const userRef = doc(collection(db, "users"), querySnap.docs[0].id);
 			await updateDoc(userRef, {
@@ -157,10 +157,10 @@ export default function AuthContextProvider({
 	}
 
 	// Auth state change listener
-	onAuthStateChanged(auth, (user: User | null) => {
+	onAuthStateChanged(auth, async (user: User | null) => {
 		if (user) {
 			if (!dbUser) {
-				GetUser(user);
+				await GetUser(user);
 			}
 			setFirebaseUser(user);
 		} else {
@@ -170,7 +170,7 @@ export default function AuthContextProvider({
 
 	useEffect(() => {
 		setError(null);
-		if (firebaseUser === undefined) {
+		if (firebaseUser === undefined || dbUser === null) {
 			Loader();
 		}
 
