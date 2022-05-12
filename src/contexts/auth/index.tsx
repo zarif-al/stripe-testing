@@ -62,7 +62,7 @@ export default function AuthContextProvider({
 	async function AddToDb(user: IUser, user_auth: User): Promise<void> {
 		try {
 			await addDoc(collection(db, "users"), user);
-			GetUser(user_auth);
+			await GetUser(user_auth);
 			setError(null);
 			router.push("/");
 		} catch (e: any) {
@@ -186,6 +186,7 @@ export default function AuthContextProvider({
 			firebaseUser !== null &&
 			(router.pathname === "/login" || router.pathname === "/signup")
 		) {
+			setDbUser(null);
 			router.push("/");
 		}
 	}, [route, router, firebaseUser]);

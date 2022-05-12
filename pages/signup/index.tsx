@@ -38,6 +38,7 @@ const SignUp = () => {
 				<input
 					type="text"
 					placeholder="Name"
+					name="fname"
 					style={{ padding: "0.4rem" }}
 					value={name}
 					onChange={(e) => {

@@ -22,8 +22,9 @@ const Home: NextPage = () => {
 	const [error, setError] = useState<string | null>(null);
 	const [loadingProducts, setLoadingProducts] = useState(true);
 	const [subscribedProduct, setSubscribedProduct] = useState(undefined);
+	const [confirmingPayment, setConfirmingPayment] = useState(false);
+
 	async function GetSessionAndUpdate(session_id: string): Promise<void> {
-		console.log("GET SESSION UPDATE");
 		const customer_id = await fetch("/api/session", {
 			method: "POST",
 			body: JSON.stringify({ session_id: session_id }),
@@ -32,6 +33,7 @@ const Home: NextPage = () => {
 			.then((res) => res.customerId);
 
 		await UpdateUser(customer_id);
+		setConfirmingPayment(false);
 		router.push("/");
 	}
 
@@ -75,6 +77,7 @@ const Home: NextPage = () => {
 			const session_id = query.get("session_id");
 			console.log("Order placed! You will receive an email confirmation.");
 			if (session_id) {
+				setConfirmingPayment(true);
 				GetSessionAndUpdate(session_id);
 			}
 		}
@@ -263,8 +266,12 @@ const Home: NextPage = () => {
 		);
 	};
 
+	if (confirmingPayment) {
+		return <div className={styles.container}>Confirming payment...</div>;
+	}
+
 	if (loadingProducts || !dbUser) {
-		return <div>Loading...</div>;
+		return <div className={styles.container}>Loading...</div>;
 	} else {
 		return (
 			<div className={styles.container}>
