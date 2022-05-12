@@ -234,7 +234,7 @@ const Home: NextPage = () => {
 	return (
 		<div className={styles.container}>
 			{loadingProducts && <div>Loading...</div>}
-			{!dbUser && <div>Loading DB...</div>}
+			{!dbUser && <div>Loading ...</div>}
 			{dbUser && !dbUser.stripeID && <NoSubscription />}
 			{subscribedProduct && !loadingProducts && products && (
 				<SubscribedProduct
