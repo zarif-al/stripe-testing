@@ -1,4 +1,5 @@
 import "../styles/globals.css";
+import "antd/dist/antd.css";
 import type { AppProps } from "next/app";
 import { useRouter } from "next/router";
 import Layout from "src/components/layout";

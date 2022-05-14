@@ -10,6 +10,8 @@ import {
 } from "src/utils/interface/apiResponses";
 import { useRouter } from "next/router";
 import { AuthContext } from "src/contexts/auth";
+import CustomModal from "src/components/modal";
+import Product from "src/components/product";
 
 interface ProductElementProps {
 	product: Stripe.Product;
@@ -23,6 +25,7 @@ const Home: NextPage = () => {
 	const [loadingProducts, setLoadingProducts] = useState(true);
 	const [subscribedProduct, setSubscribedProduct] = useState(undefined);
 	const [confirmingPayment, setConfirmingPayment] = useState(false);
+	const [modalVisible, setModalVisible] = useState(false);
 
 	async function GetSessionAndUpdate(session_id: string): Promise<void> {
 		const customer_id = await fetch("/api/session", {
@@ -68,7 +71,7 @@ const Home: NextPage = () => {
 			.catch((err) => {
 				console.log(err);
 			});
-	}, []);
+	}, [dbUser]);
 
 	useEffect(() => {
 		// Check to see if this is a redirect back from Checkout
@@ -89,108 +92,6 @@ const Home: NextPage = () => {
 		}
 	}, [dbUser]);
 
-	const Product = ({ product }: ProductElementProps): JSX.Element => {
-		const [priceLoading, setPriceLoading] = useState<boolean>(true);
-		const [priceError, setPriceError] = useState<ApiError | null>(null);
-		const [price, setPrice] = useState<Stripe.Price | null>(null);
-
-		useEffect(() => {
-			fetch("/api/price/" + product.default_price)
-				.then((res) => res.json())
-				.then((data: ApiError | Stripe.Price) => {
-					if ("error" in data) {
-						setPriceError(data);
-					} else {
-						setPrice(data);
-					}
-					setPriceLoading(false);
-				})
-				.catch((err) => {
-					console.log(err);
-				});
-		}, [product]);
-
-		return (
-			<div
-				style={{
-					border: "1px solid #ccc",
-					borderRadius: "16px",
-					padding: "0.4rem",
-					display: "flex",
-					flexDirection: "column",
-				}}
-			>
-				<div style={{ borderRadius: "12px", overflow: "hidden" }}>
-					<Image
-						src={product.images[0]}
-						alt={product.name}
-						height={400}
-						width={350}
-					/>
-				</div>
-
-				<h3 style={{ textAlign: "center" }}>{product.name}</h3>
-				<p style={{ textAlign: "center" }}>{product.description}</p>
-				<div style={{ display: "flex", justifyContent: "center" }}>
-					{subscribedProduct === product.id ? (
-						<p>You are subscribed</p>
-					) : (
-						<Price
-							priceLoading={priceLoading}
-							priceError={priceError}
-							price={price}
-							product={product}
-						/>
-					)}
-				</div>
-			</div>
-		);
-	};
-
-	interface PriceProps {
-		priceLoading: boolean;
-		priceError: ApiError | null;
-		price: Stripe.Price | null;
-		product: Stripe.Product;
-	}
-
-	const Price = ({
-		priceLoading,
-		priceError,
-		price,
-		product,
-	}: PriceProps): JSX.Element => {
-		return (
-			<>
-				{priceLoading && <div>...Loading</div>}
-				{priceError && <div>{priceError.error}</div>}
-				{price && price.recurring && price.unit_amount && product.default_price && (
-					<div
-						style={{
-							display: "flex",
-							flexDirection: "column",
-							alignItems: "center",
-							fontWeight: "500",
-							gap: "5px",
-						}}
-					>
-						{price.unit_amount / 100 + "$"}/{price.recurring.interval}
-						<form action="/api/checkout_sessions" method="POST">
-							<input
-								type="hidden"
-								name="priceId"
-								value={product.default_price as string}
-							/>
-							<button type="submit" role="link">
-								Subscribe
-							</button>
-						</form>
-					</div>
-				)}
-			</>
-		);
-	};
-
 	const productElements = (products: Stripe.Product[]) => {
 		const sortedProducts = products.sort((a, b) => {
 			return a.created - b.created;
@@ -206,7 +107,13 @@ const Home: NextPage = () => {
 					}}
 				>
 					{sortedProducts.map((product) => {
-						return <Product product={product} key={product.id} />;
+						return (
+							<Product
+								product={product}
+								key={product.id}
+								subscribedProduct={subscribedProduct}
+							/>
+						);
 					})}
 				</div>
 			</div>
@@ -225,47 +132,6 @@ const Home: NextPage = () => {
 		);
 	};
 
-	const SubscribedProduct = ({ product }: ProductElementProps): JSX.Element => {
-		return (
-			<div
-				style={{
-					border: "1px solid #ccc",
-					borderRadius: "16px",
-					padding: "0.4rem",
-					display: "flex",
-					flexDirection: "column",
-					position: "relative",
-				}}
-			>
-				<div style={{ borderRadius: "12px", overflow: "hidden" }}>
-					<Image
-						src={product.images[0]}
-						alt={product.name}
-						height={400}
-						width={350}
-					/>
-				</div>
-
-				<h3 style={{ textAlign: "center" }}>{product.name}</h3>
-				<p style={{ textAlign: "center" }}>{product.description}</p>
-				<div
-					style={{
-						position: "absolute",
-						bottom: 0,
-						left: 0,
-						width: "100%",
-						textAlign: "center",
-						fontWeight: "500",
-						backgroundColor: "lightGrey",
-						borderRadius: "0px 0px 16px 16px",
-					}}
-				>
-					You are subscribed to this plan
-				</div>
-			</div>
-		);
-	};
-
 	if (confirmingPayment) {
 		return <div className={styles.container}>Confirming payment...</div>;
 	}
@@ -275,27 +141,25 @@ const Home: NextPage = () => {
 	} else {
 		return (
 			<div className={styles.container}>
+				<CustomModal
+					isModalVisible={modalVisible}
+					onCancel={() => {
+						setModalVisible(false);
+					}}
+				>
+					Hello Modal
+				</CustomModal>
+				<button
+					onClick={() => {
+						setModalVisible(true);
+					}}
+				>
+					Modal Button
+				</button>
 				<SubscriptionList />
 			</div>
 		);
 	}
-
-	/* 		return (
-			<div className={styles.container}>
-				{loadingProducts && <div>Loading...</div>}
-				{!dbUser && <div>Loading ...</div>}
-				{dbUser && !dbUser.stripeID &&}
-				{subscribedProduct && !loadingProducts && products && (
-					<SubscribedProduct
-						product={
-							products!.find((product) => {
-								return product.id === subscribedProduct;
-							}) as Stripe.Product
-						}
-					/>
-				)}
-			</div>
-		); */
 };
 
 export default Home;
