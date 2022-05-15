@@ -89,7 +89,7 @@ export default function AuthContextProvider({
 		}
 	}
 
-	async function getMongoUser(user: FirebaseUser) {
+	async function getMongoUser(user: FirebaseUser): Promise<void> {
 		try {
 			const mongoUser = await fetch(`/api/get/mongo-user/${user.uid}`).then(
 				(res) => res.json()
@@ -212,7 +212,18 @@ export default function AuthContextProvider({
 	}, [route, router, firebaseUser, dbUser]);
 
 	function Loader(): JSX.Element {
-		return <div>Loading...</div>;
+		return (
+			<div
+				style={{
+					display: "flex",
+					justifyContent: "center",
+					alignItems: "center",
+					height: "100vh",
+				}}
+			>
+				Loading...
+			</div>
+		);
 	}
 
 	return (
