@@ -7,7 +7,7 @@ import Stripe from "stripe";
 import {
 	ApiError,
 	StripeProductsResponse,
-} from "src/utils/interface/apiResponses";
+} from "src/utils/interface/responses";
 import { useRouter } from "next/router";
 import { AuthContext } from "src/contexts/auth";
 import CustomModal from "src/components/modal";
@@ -19,15 +19,15 @@ interface ProductElementProps {
 
 const Home: NextPage = () => {
 	const router = useRouter();
-	const { dbUser, UpdateUser } = useContext(AuthContext);
+	/* 	const { dbUser } = useContext(AuthContext);
 	const [products, setProducts] = useState<Stripe.Product[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [loadingProducts, setLoadingProducts] = useState(true);
 	const [subscribedProduct, setSubscribedProduct] = useState(undefined);
 	const [confirmingPayment, setConfirmingPayment] = useState(false);
-	const [modalVisible, setModalVisible] = useState(false);
+	const [modalVisible, setModalVisible] = useState(false); */
 
-	async function GetSessionAndUpdate(session_id: string): Promise<void> {
+	/* 	async function GetSessionAndUpdate(session_id: string): Promise<void> {
 		const customer_id = await fetch("/api/session", {
 			method: "POST",
 			body: JSON.stringify({ session_id: session_id }),
@@ -35,16 +35,15 @@ const Home: NextPage = () => {
 			.then((res) => res.json())
 			.then((res) => res.customerId);
 
-		await UpdateUser(customer_id);
 		setConfirmingPayment(false);
 		router.push("/");
-	}
+	} */
 
-	useEffect(() => {
+	/* 	useEffect(() => {
 		async function GetCustomer(customer_id: string): Promise<void> {
 			await fetch("/api/customer", {
 				method: "POST",
-				body: JSON.stringify({ customer_id: dbUser!.stripeID }),
+				body: JSON.stringify({ customer_id: dbUser!.stripeId }),
 			})
 				.then((res) => res.json())
 				.then((res) => {
@@ -52,13 +51,13 @@ const Home: NextPage = () => {
 				});
 		}
 
-		if (dbUser && dbUser.stripeID) {
-			GetCustomer(dbUser.stripeID);
+		if (dbUser && dbUser.stripeId) {
+			GetCustomer(dbUser.stripeId);
 		}
-	}, [dbUser]);
+	}, [dbUser]); */
 
-	useEffect(() => {
-		fetch("/api/products")
+	/* 	useEffect(() => {
+		fetch("/api/get/products")
 			.then((res) => res.json())
 			.then((data: ApiError | StripeProductsResponse) => {
 				if ("error" in data) {
@@ -90,9 +89,9 @@ const Home: NextPage = () => {
 				"Order canceled -- continue to shop around and checkout when you’re ready."
 			);
 		}
-	}, [dbUser]);
+	}, [dbUser]); */
 
-	const productElements = (products: Stripe.Product[]) => {
+	/* 	const productElements = (products: Stripe.Product[]) => {
 		const sortedProducts = products.sort((a, b) => {
 			return a.created - b.created;
 		});
@@ -131,12 +130,12 @@ const Home: NextPage = () => {
 			</>
 		);
 	};
-
-	if (confirmingPayment) {
+ */
+	/* 	if (confirmingPayment) {
 		return <div className={styles.container}>Confirming payment...</div>;
-	}
+	} */
 
-	if (loadingProducts || !dbUser) {
+	/* 	if (loadingProducts || !dbUser) {
 		return <div className={styles.container}>Loading...</div>;
 	} else {
 		return (
@@ -159,7 +158,20 @@ const Home: NextPage = () => {
 				<SubscriptionList />
 			</div>
 		);
-	}
+	} */
+
+	return (
+		<div
+			style={{
+				display: "flex",
+				alignItems: "center",
+				justifyContent: "center",
+				height: "100vh",
+			}}
+		>
+			Hello
+		</div>
+	);
 };
 
 export default Home;

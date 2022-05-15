@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
-import { ApiError } from "src/utils/interface/apiResponses";
+import { ApiError } from "src/utils/interface/responses";
 
 const stripe = new Stripe(process.env.NEXT_PRIVATE_STRIPE_SECRET_KEY!, {
 	apiVersion: "2020-08-27",

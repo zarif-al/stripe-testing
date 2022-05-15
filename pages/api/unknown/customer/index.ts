@@ -1,14 +1,9 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
-import { auth, db } from "src/auth/Firebase";
 
 const stripe = new Stripe(process.env.NEXT_PRIVATE_STRIPE_SECRET_KEY!, {
 	apiVersion: "2020-08-27",
 });
-
-interface NewCustomer extends Stripe.Customer {
-	subscriptions: Stripe.ApiList<Stripe.Subscription> | undefined;
-}
 
 export default async function handler(
 	req: NextApiRequest,

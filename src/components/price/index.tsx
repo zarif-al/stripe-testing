@@ -1,4 +1,6 @@
 import React from "react";
+import { ApiError } from "src/utils/interface/responses";
+import Stripe from "stripe";
 
 interface PriceProps {
 	priceLoading: boolean;

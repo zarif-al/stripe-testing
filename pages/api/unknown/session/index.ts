@@ -1,6 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
-import { auth, db } from "src/auth/Firebase";
 
 const stripe = new Stripe(process.env.NEXT_PRIVATE_STRIPE_SECRET_KEY!, {
 	apiVersion: "2020-08-27",

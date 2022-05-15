@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Price from "src/components/price";
+import Stripe from "stripe";
+import { ApiError } from "src/utils/interface/responses";
 
 interface ProductElementProps {
 	product: Stripe.Product;
@@ -16,7 +18,7 @@ const Product = ({
 	const [price, setPrice] = useState<Stripe.Price | null>(null);
 
 	useEffect(() => {
-		fetch("/api/price/" + product.default_price)
+		fetch("/api/get/price/" + product.default_price)
 			.then((res) => res.json())
 			.then((data: ApiError | Stripe.Price) => {
 				if ("error" in data) {

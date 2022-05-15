@@ -4,7 +4,7 @@ import Stripe from "stripe";
 import {
 	ApiError,
 	StripeProductsResponse,
-} from "src/utils/interface/apiResponses";
+} from "src/utils/interface/responses";
 
 const stripe = new Stripe(process.env.NEXT_PRIVATE_STRIPE_SECRET_KEY!, {
 	apiVersion: "2020-08-27",
