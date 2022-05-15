@@ -19,13 +19,13 @@ interface ProductElementProps {
 
 const Home: NextPage = () => {
 	const router = useRouter();
-	/* 	const { dbUser } = useContext(AuthContext);
+	const { dbUser } = useContext(AuthContext);
 	const [products, setProducts] = useState<Stripe.Product[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [loadingProducts, setLoadingProducts] = useState(true);
 	const [subscribedProduct, setSubscribedProduct] = useState(undefined);
 	const [confirmingPayment, setConfirmingPayment] = useState(false);
-	const [modalVisible, setModalVisible] = useState(false); */
+	const [modalVisible, setModalVisible] = useState(false);
 
 	/* 	async function GetSessionAndUpdate(session_id: string): Promise<void> {
 		const customer_id = await fetch("/api/session", {
@@ -56,7 +56,7 @@ const Home: NextPage = () => {
 		}
 	}, [dbUser]); */
 
-	/* 	useEffect(() => {
+	useEffect(() => {
 		fetch("/api/get/products")
 			.then((res) => res.json())
 			.then((data: ApiError | StripeProductsResponse) => {
@@ -72,7 +72,7 @@ const Home: NextPage = () => {
 			});
 	}, [dbUser]);
 
-	useEffect(() => {
+	/* 	useEffect(() => {
 		// Check to see if this is a redirect back from Checkout
 		const query = new URLSearchParams(window.location.search);
 		if (query.get("success") && dbUser) {
@@ -89,9 +89,9 @@ const Home: NextPage = () => {
 				"Order canceled -- continue to shop around and checkout when you’re ready."
 			);
 		}
-	}, [dbUser]); */
+	}, [dbUser]);  */
 
-	/* 	const productElements = (products: Stripe.Product[]) => {
+	const productElements = (products: Stripe.Product[]) => {
 		const sortedProducts = products.sort((a, b) => {
 			return a.created - b.created;
 		});
@@ -130,48 +130,20 @@ const Home: NextPage = () => {
 			</>
 		);
 	};
- */
+
 	/* 	if (confirmingPayment) {
 		return <div className={styles.container}>Confirming payment...</div>;
 	} */
 
-	/* 	if (loadingProducts || !dbUser) {
+	if (loadingProducts || !dbUser) {
 		return <div className={styles.container}>Loading...</div>;
 	} else {
 		return (
 			<div className={styles.container}>
-				<CustomModal
-					isModalVisible={modalVisible}
-					onCancel={() => {
-						setModalVisible(false);
-					}}
-				>
-					Hello Modal
-				</CustomModal>
-				<button
-					onClick={() => {
-						setModalVisible(true);
-					}}
-				>
-					Modal Button
-				</button>
 				<SubscriptionList />
 			</div>
 		);
-	} */
-
-	return (
-		<div
-			style={{
-				display: "flex",
-				alignItems: "center",
-				justifyContent: "center",
-				height: "100vh",
-			}}
-		>
-			Hello
-		</div>
-	);
+	}
 };
 
 export default Home;
