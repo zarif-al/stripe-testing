@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import Link from "next/link";
 import { AuthContext } from "src/contexts/auth";
+import { Button } from "antd";
 
 interface FormProps {
 	setLoadingStep: (bool: boolean) => void;
@@ -41,9 +42,9 @@ function AlmostThereForm({ setLoadingStep }: FormProps) {
 					}}
 					required
 				/>
-				<button type="submit" style={{ padding: "0.4rem", cursor: "pointer" }}>
+				<Button htmlType="submit" type="primary">
 					Complete Sign Up
-				</button>
+				</Button>
 				<p
 					style={{
 						textAlign: "center",

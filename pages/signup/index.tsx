@@ -15,10 +15,6 @@ const SignUp = () => {
 		if (firebaseUser) {
 			setCurrent(1);
 		}
-
-		if (dbUser) {
-			setCurrent(2);
-		}
 	}, [firebaseUser, dbUser]);
 
 	const steps = [
@@ -29,10 +25,6 @@ const SignUp = () => {
 		{
 			title: "Almost There",
 			content: <AlmostThereForm setLoadingStep={setLoadingStep} />,
-		},
-		{
-			title: "Done",
-			content: <div>DONE!</div>,
 		},
 	];
 
@@ -71,6 +63,7 @@ const SignUp = () => {
 						width: "400px",
 						justifyContent: "center",
 						alignItems: "center",
+						marginTop: "20px",
 					}}
 				>
 					{steps[current].content}

@@ -1,6 +1,7 @@
 import React, { useContext, useState } from "react";
 import Link from "next/link";
 import { AuthContext } from "src/contexts/auth";
+import { Button } from "antd";
 
 const Login = () => {
 	const { signIn, error } = useContext(AuthContext);
@@ -42,6 +43,7 @@ const Login = () => {
 					onChange={(e) => {
 						setEmail(e.target.value);
 					}}
+					required
 				/>
 				<input
 					type="password"
@@ -51,10 +53,11 @@ const Login = () => {
 					onChange={(e) => {
 						setPassword(e.target.value);
 					}}
+					required
 				/>
-				<button type="submit" style={{ padding: "0.4rem", cursor: "pointer" }}>
+				<Button type="primary" htmlType="submit">
 					Login
-				</button>
+				</Button>
 				<p
 					style={{
 						textAlign: "center",

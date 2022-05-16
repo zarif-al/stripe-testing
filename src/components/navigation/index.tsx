@@ -2,22 +2,22 @@ import React, { useContext } from "react";
 import { AuthContext } from "src/contexts/auth";
 
 const Navigation = () => {
-	const { signOut, firebaseUser } = useContext(AuthContext);
+	const { signOut, firebaseUser, dbUser } = useContext(AuthContext);
 
-	return (
-		<div
-			style={{
-				position: "sticky",
-				top: 0,
-				display: "flex",
-				justifyContent: "flex-end",
-				alignItems: "center",
-				height: "3rem",
-				backgroundColor: "#DCDCDC",
-				borderBottom: "2px solid black",
-			}}
-		>
-			{firebaseUser && (
+	if (firebaseUser && dbUser) {
+		return (
+			<div
+				style={{
+					position: "sticky",
+					top: 0,
+					display: "flex",
+					justifyContent: "flex-end",
+					alignItems: "center",
+					height: "3rem",
+					backgroundColor: "#DCDCDC",
+					borderBottom: "2px solid black",
+				}}
+			>
 				<button
 					style={{ height: "2rem" }}
 					onClick={() => {
@@ -26,9 +26,11 @@ const Navigation = () => {
 				>
 					Sign Out
 				</button>
-			)}
-		</div>
-	);
+			</div>
+		);
+	} else {
+		return <></>;
+	}
 };
 
 export default Navigation;

@@ -97,6 +97,8 @@ export default function AuthContextProvider({
 
 			if (mongoUser.success == true) {
 				setDbUser(mongoUser.data[0]);
+			} else {
+				setDbUser(null);
 			}
 
 			if (mongoUser.error !== undefined) {
@@ -174,7 +176,7 @@ export default function AuthContextProvider({
 
 		setError(null);
 
-		if (firebaseUser === undefined || dbUser === undefined) {
+		if (firebaseUser === undefined && dbUser === undefined) {
 			Loader();
 		}
 
@@ -199,7 +201,7 @@ export default function AuthContextProvider({
 			dbUser === null &&
 			router.pathname !== "/signup"
 		) {
-			router.push("/login");
+			router.push("/signup");
 		}
 
 		if (
