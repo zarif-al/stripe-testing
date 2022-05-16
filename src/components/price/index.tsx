@@ -1,6 +1,7 @@
 import React from "react";
 import { ApiError } from "src/utils/interface/responses";
 import Stripe from "stripe";
+import { Button } from "antd";
 
 interface PriceProps {
 	priceLoading: boolean;
@@ -36,9 +37,9 @@ const Price = ({
 							name="priceId"
 							value={product.default_price as string}
 						/>
-						<button type="submit" role="link">
+						<Button htmlType="submit" type="primary" role="link">
 							Subscribe
-						</button>
+						</Button>
 					</form>
 				</div>
 			)}
