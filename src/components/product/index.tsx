@@ -28,6 +28,7 @@ const Product = ({
 		null
 	);
 	async function CreateSubscription(price_id: string): Promise<void> {
+		setModalVisible(true);
 		const subscription = await fetch("/api/post/stripe/subscription/create", {
 			method: "POST",
 			headers: {
@@ -44,7 +45,6 @@ const Product = ({
 				id: subscription.subscriptionId,
 				client_secret: subscription.clientSecret,
 			});
-			setModalVisible(true);
 		} else {
 			setSubscriptionError(subscription.message);
 		}
