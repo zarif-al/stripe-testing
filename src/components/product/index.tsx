@@ -3,6 +3,7 @@ import Image from "next/image";
 import Price from "src/components/price";
 import Stripe from "stripe";
 import { ApiError } from "src/utils/interface/responses";
+import { Button } from "antd";
 
 interface ProductElementProps {
 	product: Stripe.Product;
@@ -58,12 +59,15 @@ const Product = ({
 				{subscribedProduct === product.id ? (
 					<p>You are subscribed</p>
 				) : (
-					<Price
-						priceLoading={priceLoading}
-						priceError={priceError}
-						price={price}
-						product={product}
-					/>
+					<>
+						<Price
+							priceLoading={priceLoading}
+							priceError={priceError}
+							price={price}
+							product={product}
+						/>
+						<Button type="primary">Subscribe</Button>
+					</>
 				)}
 			</div>
 		</div>
