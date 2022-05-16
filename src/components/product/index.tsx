@@ -18,7 +18,7 @@ const Product = ({
 	const [price, setPrice] = useState<Stripe.Price | null>(null);
 
 	useEffect(() => {
-		fetch("/api/get/price/" + product.default_price)
+		fetch("/api/get/stripe/price/" + product.default_price)
 			.then((res) => res.json())
 			.then((data: ApiError | Stripe.Price) => {
 				if ("error" in data) {

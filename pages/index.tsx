@@ -57,7 +57,7 @@ const Home: NextPage = () => {
 	}, [dbUser]); */
 
 	useEffect(() => {
-		fetch("/api/get/products")
+		fetch("/api/get/stripe/products")
 			.then((res) => res.json())
 			.then((data: ApiError | StripeProductsResponse) => {
 				if ("error" in data) {

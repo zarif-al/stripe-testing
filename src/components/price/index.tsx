@@ -1,6 +1,7 @@
 import React from "react";
 import { ApiError } from "src/utils/interface/responses";
 import Stripe from "stripe";
+import { Button } from "antd";
 
 interface PriceProps {
 	priceLoading: boolean;
@@ -30,16 +31,9 @@ const Price = ({
 					}}
 				>
 					{price.unit_amount / 100 + "$"}/{price.recurring.interval}
-					<form action="/api/checkout_sessions" method="POST">
-						<input
-							type="hidden"
-							name="priceId"
-							value={product.default_price as string}
-						/>
-						<button type="submit" role="link">
-							Subscribe
-						</button>
-					</form>
+					<Button type="primary" htmlType="submit" role="link">
+						Subscribe
+					</Button>
 				</div>
 			)}
 		</>
