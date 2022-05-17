@@ -43,6 +43,9 @@ export default function AuthContextProvider({
 	async function createMongoDBUser(name: string): Promise<void> {
 		try {
 			// First Create Stripe User
+			// TODO : If customer with this email exists in stripe then get that or delete it.
+			// Under normal circumstances this should not happen. This can only happen if user is deleted from
+			// MongoDB
 			const stripeUser = await fetch("/api/post/stripe/customer/create", {
 				method: "POST",
 				body: JSON.stringify({
@@ -65,7 +68,7 @@ export default function AuthContextProvider({
 				name: name,
 				email: firebaseUser!.email!,
 				fireId: firebaseUser!.uid,
-				stripeId: stripeUser.id,
+				stripeId: stripeUser.customer_id,
 			};
 
 			const user = await fetch("/api/post/user/create", {

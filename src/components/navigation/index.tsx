@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { AuthContext } from "src/contexts/auth";
+import { Button } from "antd";
 
 const Navigation = () => {
 	const { signOut, firebaseUser, dbUser } = useContext(AuthContext);
@@ -18,14 +19,16 @@ const Navigation = () => {
 					borderBottom: "2px solid black",
 				}}
 			>
-				<button
-					style={{ height: "2rem" }}
-					onClick={() => {
-						signOut();
-					}}
-				>
-					Sign Out
-				</button>
+				<div style={{ marginRight: "15px" }}>
+					<Button
+						type="primary"
+						onClick={() => {
+							signOut();
+						}}
+					>
+						Sign Out
+					</Button>
+				</div>
 			</div>
 		);
 	} else {

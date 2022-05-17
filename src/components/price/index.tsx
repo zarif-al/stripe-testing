@@ -31,16 +31,6 @@ const Price = ({
 					}}
 				>
 					{price.unit_amount / 100 + "$"}/{price.recurring.interval}
-					<form action="/api/checkout_sessions" method="POST">
-						<input
-							type="hidden"
-							name="priceId"
-							value={product.default_price as string}
-						/>
-						<Button htmlType="submit" type="primary" role="link">
-							Subscribe
-						</Button>
-					</form>
 				</div>
 			)}
 		</>
