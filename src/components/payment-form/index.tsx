@@ -4,6 +4,8 @@ import {
 	useStripe,
 	useElements,
 } from "@stripe/react-stripe-js";
+import { Button } from "antd";
+
 function PaymentForm(): JSX.Element {
 	const stripe = useStripe();
 	const elements = useElements();
@@ -58,15 +60,15 @@ function PaymentForm(): JSX.Element {
 				position: "relative",
 			}}
 		>
-			<p style={{ position: "absolute", display: !ready ? "block" : "none" }}>
-				Loading...
-			</p>
+			{!stripe && <p>Stripe Error</p>}
+			{stripe && !ready && <p>Loading...</p>}
 			<form
 				onSubmit={handleSubmit}
 				style={{
 					display: ready ? "flex" : "none",
 					flexDirection: "column",
 					alignItems: "center",
+					gap: "8px",
 				}}
 			>
 				<PaymentElement
@@ -75,10 +77,12 @@ function PaymentForm(): JSX.Element {
 						setReady(true);
 					}}
 				/>
-				<button disabled={isLoading || !stripe || !elements} id="submit">
-					<span id="button-text">{isLoading ? <div>Loading</div> : "Pay now"}</span>
-				</button>
-				{/* Show any error or success messages */}
+
+				{!isLoading && stripe && elements && ready && (
+					<Button type="primary" id="submit" htmlType="submit">
+						<span id="button-text">{isLoading ? <div>Loading</div> : "Pay now"}</span>
+					</Button>
+				)}
 				{message && <div id="payment-message">{message}</div>}
 			</form>
 		</div>

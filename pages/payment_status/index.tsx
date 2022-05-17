@@ -46,7 +46,7 @@ function PaymentStatus() {
 	useEffect(() => {
 		if (message) {
 			setTimeout(() => {
-				router.push("/");
+				router.push("/my_subscription");
 			}, 3000);
 		}
 	}, [message]);

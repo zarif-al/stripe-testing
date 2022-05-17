@@ -6,7 +6,7 @@ import { ApiError } from "src/utils/interface/responses";
 import { ISubscriptionData } from "src/utils/interface/types";
 import { Button } from "antd";
 import { AuthContext } from "src/contexts/auth";
-import CheckoutModal from "src/components/checkout-modal";
+import { useRouter } from "next/router";
 
 interface ProductElementProps {
 	product: Stripe.Product;
@@ -17,6 +17,7 @@ const Product = ({
 	product,
 	subscribedProduct,
 }: ProductElementProps): JSX.Element => {
+	const router = useRouter();
 	const { dbUser } = useContext(AuthContext);
 	const [priceLoading, setPriceLoading] = useState<boolean>(true);
 	const [priceError, setPriceError] = useState<ApiError | null>(null);
@@ -28,7 +29,6 @@ const Product = ({
 		null
 	);
 	async function CreateSubscription(price_id: string): Promise<void> {
-		setModalVisible(true);
 		const subscription = await fetch("/api/post/stripe/subscription/create", {
 			method: "POST",
 			headers: {
@@ -41,10 +41,7 @@ const Product = ({
 		}).then((res) => res.json());
 
 		if (subscription.success) {
-			setSubscriptionData({
-				id: subscription.subscriptionId,
-				client_secret: subscription.clientSecret,
-			});
+			router.push(`/payment?client_secret=${subscription.clientSecret}`);
 		} else {
 			setSubscriptionError(subscription.message);
 		}
@@ -104,15 +101,6 @@ const Product = ({
 					)}
 				</div>
 			</div>
-			<CheckoutModal
-				isModalVisible={modalVisible}
-				onCancel={() => {
-					setSubscriptionData(null);
-					setModalVisible(false);
-				}}
-				subscription={subscriptionData}
-				subscriptionError={subscriptionError}
-			/>
 		</>
 	);
 };

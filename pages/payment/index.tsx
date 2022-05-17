@@ -1,53 +1,54 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button } from "antd";
-import { ISubscriptionData } from "src/utils/interface/types";
 import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe, Appearance } from "@stripe/stripe-js";
 import getStripe from "src/utils/stripe";
 import PaymentForm from "src/components/payment-form";
-
-interface ModalProps {
-	isModalVisible: boolean;
-	onCancel: () => void;
-	subscription: ISubscriptionData | null;
-	subscriptionError: string | null;
-}
+import { useRouter } from "next/router";
+import { Appearance } from "@stripe/stripe-js";
+import Link from "next/link";
 
 const stripePromise = getStripe();
 
-function CheckoutModal({
-	isModalVisible,
-	onCancel,
-	subscription,
-	subscriptionError,
-}: ModalProps) {
+function PaymentPage() {
+	const router = useRouter();
 	const [clientSecret, setClientSecret] = useState<string | null>(null);
-
 	useEffect(() => {
-		if (subscription !== null) {
-			setClientSecret(subscription.client_secret);
+		const clientSecret = new URLSearchParams(window.location.search).get(
+			"client_secret"
+		);
+
+		if (clientSecret) {
+			setClientSecret(clientSecret);
+		} else {
+			router.push("/");
 		}
-	}, [subscription]);
+	}, [router]);
 
 	const appearance = {
 		theme: "stripe",
 	} as Appearance;
 
 	return (
-		<Modal
-			title="Basic Modal"
-			visible={isModalVisible}
-			footer={null}
-			onCancel={onCancel}
-			centered
+		<div
+			style={{
+				display: "flex",
+				flexDirection: "column",
+				justifyContent: "center",
+				alignItems: "center",
+				height: "90vh",
+				position: "relative",
+			}}
 		>
+			<div style={{ position: "absolute", top: 10, left: 15 }}>
+				<Link href="/"> Back</Link>
+			</div>
+
 			{!clientSecret && (
 				<div
 					style={{
 						display: "flex",
 						justifyContent: "center",
 						alignItems: "center",
-						height: "300px",
+						minHeight: "300px",
 					}}
 				>
 					Loading...
@@ -58,9 +59,8 @@ function CheckoutModal({
 					<PaymentForm />
 				</Elements>
 			)}
-			{subscriptionError && <p>{subscriptionError}</p>}
-		</Modal>
+		</div>
 	);
 }
 
-export default CheckoutModal;
+export default PaymentPage;
