@@ -1,26 +1,20 @@
 import React, { useState, useEffect } from "react";
-import getStripe from "src/utils/stripe";
-
-const stripe = getStripe();
-
+import { useRouter } from "next/router";
+import { IPaymentStatus } from "src/utils/interface/responses";
 function PaymentStatus() {
 	const [message, setMessage] = useState<string | null>(null);
+	const [error, setError] = useState<string | null>(null);
+	const router = useRouter();
 
-	useEffect(() => {
-		if (!stripe) {
-			return;
-		}
+	async function getPaymentStatus(paymentIntentId: string) {
+		const paymentIntent: IPaymentStatus = await fetch(
+			`/api/get/stripe/payment-status?payment_intent=${paymentIntentId}`
+		).then((res) => res.json());
 
-		const clientSecret = new URLSearchParams(window.location.search).get(
-			"payment_intent_client_secret"
-		);
-
-		if (!clientSecret) {
-			return;
-		}
-
-		stripe.retrievePaymentIntent(clientSecret).then(({ paymentIntent }) => {
-			switch (paymentIntent?.status) {
+		if (paymentIntent.success === false) {
+			setError("Failed to get payment status info");
+		} else {
+			switch (paymentIntent.status) {
 				case "succeeded":
 					setMessage("Payment succeeded!");
 					break;
@@ -34,14 +28,39 @@ function PaymentStatus() {
 					setMessage("Something went wrong.");
 					break;
 			}
-		});
-	}, [stripe]);
+		}
+	}
+
+	useEffect(() => {
+		const paymentIntentId = new URLSearchParams(window.location.search).get(
+			"payment_intent"
+		);
+
+		if (!paymentIntentId) {
+			router.push("/");
+		} else {
+			getPaymentStatus(paymentIntentId);
+		}
+	}, [router]);
+
+	useEffect(() => {
+		if (message) {
+			setTimeout(() => {
+				router.push("/");
+			}, 3000);
+		}
+	}, [message]);
 
 	return (
 		<div
-			style={{ display: "flex", justifyContent: "center", alignItems: "center" }}
+			style={{
+				display: "flex",
+				justifyContent: "center",
+				alignItems: "center",
+				height: "90vh",
+			}}
 		>
-			{message}
+			<h2>{message}</h2>
 		</div>
 	);
 }

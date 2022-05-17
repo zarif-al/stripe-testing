@@ -5,3 +5,8 @@ export interface ApiError {
 }
 
 export type StripeProductsResponse = Stripe.ApiList<Stripe.Product>;
+
+export interface IPaymentStatus {
+	success: boolean;
+	status: string;
+}

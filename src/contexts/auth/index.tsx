@@ -69,6 +69,9 @@ export default function AuthContextProvider({
 				email: firebaseUser!.email!,
 				fireId: firebaseUser!.uid,
 				stripeId: stripeUser.customer_id,
+				subscriptionId: null,
+				subscriptionStatus: null,
+				productId: null,
 			};
 
 			const user = await fetch("/api/post/user/create", {

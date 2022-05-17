@@ -72,20 +72,11 @@ const Product = ({
 				style={{
 					border: "1px solid #ccc",
 					borderRadius: "16px",
-					padding: "0.4rem",
+					padding: "5rem",
 					display: "flex",
 					flexDirection: "column",
 				}}
 			>
-				<div style={{ borderRadius: "12px", overflow: "hidden" }}>
-					<Image
-						src={product.images[0]}
-						alt={product.name}
-						height={400}
-						width={450}
-					/>
-				</div>
-
 				<h3 style={{ textAlign: "center" }}>{product.name}</h3>
 				<p style={{ textAlign: "center" }}>{product.description}</p>
 				<div style={{ display: "flex", justifyContent: "center" }}>

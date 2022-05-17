@@ -14,10 +14,15 @@ export default async function handler(
 	req: NextApiRequest,
 	res: NextApiResponse<StripeProductsResponse | ApiError>
 ) {
-	if (!stripe) {
-		res.status(500).json({ error: "Stripe not loaded" });
+	if (req.method === "GET") {
+		if (!stripe) {
+			res.status(500).json({ error: "Stripe not loaded" });
+		} else {
+			const products = await stripe.products.list({});
+			res.status(200).json(products);
+		}
 	} else {
-		const products = await stripe.products.list({});
-		res.status(200).json(products);
+		res.setHeader("Allow", "GET");
+		res.status(405).end("Method Not Allowed");
 	}
 }

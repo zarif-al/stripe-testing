@@ -3,6 +3,9 @@ export interface IUser {
 	email: string;
 	stripeId: string | null;
 	fireId: string;
+	subscriptionId: string | null;
+	subscriptionStatus: string | null;
+	productId: string | null;
 }
 
 export interface ISubscriptionData {
