@@ -6,13 +6,17 @@ import {
 } from "@stripe/react-stripe-js";
 import { Button } from "antd";
 
-function PaymentForm(): JSX.Element {
+interface PaymentFormProps {
+	ready: boolean;
+	setReady: (ready: boolean) => void;
+}
+
+function PaymentForm({ ready, setReady }: PaymentFormProps): JSX.Element {
 	const stripe = useStripe();
 	const elements = useElements();
 
 	const [message, setMessage] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
-	const [ready, setReady] = useState(false);
 
 	const handleSubmit = async (e: React.SyntheticEvent) => {
 		e.preventDefault();

@@ -100,9 +100,9 @@ export default function AuthContextProvider({
 			const mongoUser = await fetch(`/api/get/mongo-user/${user.uid}`).then(
 				(res) => res.json()
 			);
-
+			console.log(mongoUser);
 			if (mongoUser.success == true) {
-				setDbUser(mongoUser.data[0]);
+				setDbUser(mongoUser.data);
 			} else {
 				setDbUser(null);
 			}
@@ -161,7 +161,7 @@ export default function AuthContextProvider({
 		await auth.signOut().catch((signOutError) => {
 			setError(signOutError.code);
 		});
-		setDbUser(null);
+		setDbUser(undefined);
 	}
 
 	// Auth state change listener

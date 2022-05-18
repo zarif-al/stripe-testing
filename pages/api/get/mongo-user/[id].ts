@@ -9,11 +9,11 @@ export default async function handler(
 	if (req.method === "GET") {
 		await dbConnect();
 		try {
-			const user = await User.find({
+			const user = await User.findOne({
 				fireId: req.query.id,
 			});
 
-			if (user.length === 0) {
+			if (!user) {
 				res.status(200).json({ success: false, data: null });
 			} else {
 				res.status(200).json({ success: true, data: user });

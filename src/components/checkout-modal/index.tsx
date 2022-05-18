@@ -22,6 +22,7 @@ function CheckoutModal({
 	subscriptionError,
 }: ModalProps) {
 	const [clientSecret, setClientSecret] = useState<string | null>(null);
+	const [ready, setReady] = useState(false);
 
 	useEffect(() => {
 		if (subscription !== null) {
@@ -33,8 +34,6 @@ function CheckoutModal({
 		theme: "stripe",
 	} as Appearance;
 
-	console.log(clientSecret);
-
 	return (
 		<Modal
 			title="Basic Modal"
@@ -42,6 +41,7 @@ function CheckoutModal({
 			footer={null}
 			onCancel={onCancel}
 			centered
+			closable={!ready ? false : true}
 		>
 			{!clientSecret && (
 				<div
@@ -57,7 +57,7 @@ function CheckoutModal({
 			)}
 			{clientSecret && stripePromise && (
 				<Elements options={{ clientSecret, appearance }} stripe={stripePromise}>
-					<PaymentForm />
+					<PaymentForm ready={ready} setReady={setReady} />
 				</Elements>
 			)}
 			{subscriptionError && <p>{subscriptionError}</p>}

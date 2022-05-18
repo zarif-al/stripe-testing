@@ -8,7 +8,7 @@ import User from "src/models/user";
 /* 
 TO TEST IN LOCAL
 stripe login
-stripe listen --forward-to localhost:3000/api/webhooks
+stripe listen --forward-to localhost:3000/api/post/stripe/webhooks
 THEN PROCEED TO MAKE A PAYMENT 
 */
 
@@ -87,10 +87,12 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
 					subscriptionStatus,
 				}
 			);
-			if (user.length === 0) {
-				console.log("User Not Found");
+			if (!user) {
+				console.log("❌ User Not Found");
 			} else {
-				console.log("Update Success");
+				console.log(
+					`✅ Updated Subscription for ${user.email}, Subscription Id: ${subscription.id}, Product Id: ${productId}, Subscription Status: ${subscriptionStatus}`
+				);
 			}
 		}
 	} else {
