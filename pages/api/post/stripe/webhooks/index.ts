@@ -51,18 +51,16 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
 
 		// Invoice Payment Succeeded
 		if (event.type === "invoice.payment_succeeded") {
-			console.log("✅ Invoice Payment Succeded:");
 			const invoice = event.data.object as Stripe.Invoice;
 			// Check billing_reason
 			if (invoice.billing_reason === "subscription_create") {
-				console.log("✅ Invoice Payment Succeeded: subscription_create");
 				const subscriptionId = invoice.subscription;
 				const paymentIntentId = invoice.payment_intent;
 				// Retrieve the payment intent used to pay the subscription
 				const payment_intent = await stripe.paymentIntents.retrieve(
 					paymentIntentId as string
 				);
-				console.log("Updating Payment Method");
+				console.log("✅ Updating Payment Method");
 				// Update default payment method
 				/* 			const subscription = await stripe.subscriptions.update(subscription_id, {
 					default_payment_method: payment_intent.payment_method,
@@ -70,8 +68,7 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
 			}
 		} else if (
 			event.type === "customer.subscription.created" ||
-			event.type === "customer.subscription.updated" ||
-			event.type === "customer.subscription.deleted"
+			event.type === "customer.subscription.updated"
 		) {
 			const subscription = event.data.object as Stripe.Subscription;
 			const productId = subscription.items.data[0].price.product;
@@ -85,6 +82,7 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
 					subscriptionId: subscription.id,
 					productId,
 					subscriptionStatus,
+					cancelAtPeriodEnd: subscription.cancel_at_period_end,
 				}
 			);
 			if (!user) {
@@ -92,6 +90,25 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
 			} else {
 				console.log(
 					`✅ Updated Subscription for ${user.email}, Subscription Id: ${subscription.id}, Product Id: ${productId}, Subscription Status: ${subscriptionStatus}`
+				);
+			}
+		} else if (event.type === "customer.subscription.deleted") {
+			const subscription = event.data.object as Stripe.Subscription;
+			const stripeId = subscription.customer;
+
+			const user = await User.findOneAndUpdate(
+				{ stripeId },
+				{
+					subscriptionId: null,
+					productId: null,
+					subscriptionStatus: null,
+				}
+			);
+			if (!user) {
+				console.log("❌ User Not Found");
+			} else {
+				console.log(
+					`✅ Updated Subscription for ${user.email}, Subscription Deleted`
 				);
 			}
 		}

@@ -8,9 +8,8 @@ export default async function handler(
 ) {
 	if (req.method === "POST") {
 		await dbConnect();
-		const { name, email, fireId, stripeId } = req.body;
 		try {
-			const user = await User.create({ name, email, fireId, stripeId });
+			const user = await User.create({ ...req.body });
 			res.status(201).json({ success: true, data: user });
 		} catch (e: any) {
 			console.log(e);

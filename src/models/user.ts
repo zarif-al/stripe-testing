@@ -9,6 +9,7 @@ const UserSchema = new mongoose.Schema<IUser>({
 	subscriptionId: String,
 	subscriptionStatus: String,
 	productId: String,
+	cancelAtPeriodEnd: { type: Boolean, default: false },
 });
 
 export default mongoose.models.User || mongoose.model("User", UserSchema);

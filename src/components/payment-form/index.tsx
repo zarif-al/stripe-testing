@@ -60,7 +60,7 @@ function PaymentForm({ ready, setReady }: PaymentFormProps): JSX.Element {
 				display: "flex",
 				justifyContent: "center",
 				alignItems: "center",
-				height: "300px",
+				minHeight: "300px",
 				position: "relative",
 			}}
 		>

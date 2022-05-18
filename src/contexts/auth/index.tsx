@@ -72,6 +72,7 @@ export default function AuthContextProvider({
 				subscriptionId: null,
 				subscriptionStatus: null,
 				productId: null,
+				cancelAtPeriodEnd: false,
 			};
 
 			const user = await fetch("/api/post/user/create", {
@@ -100,7 +101,7 @@ export default function AuthContextProvider({
 			const mongoUser = await fetch(`/api/get/mongo-user/${user.uid}`).then(
 				(res) => res.json()
 			);
-			console.log(mongoUser);
+
 			if (mongoUser.success == true) {
 				setDbUser(mongoUser.data);
 			} else {

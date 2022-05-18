@@ -6,6 +6,7 @@ export interface IUser {
 	subscriptionId: string | null;
 	subscriptionStatus: string | null;
 	productId: string | null;
+	cancelAtPeriodEnd: boolean;
 }
 
 export interface ISubscriptionData {
