@@ -13,6 +13,11 @@ import { AuthContext } from "src/contexts/auth";
 import CustomModal from "src/components/modal";
 import Product from "src/components/product";
 
+// Loading stripe on the index page for better stability
+import getStripe from "src/utils/stripe";
+
+const stripePromise = getStripe();
+
 interface ProductElementProps {
 	product: Stripe.Product;
 }
