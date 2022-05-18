@@ -6,7 +6,7 @@ import { ApiError } from "src/utils/interface/responses";
 import { ISubscriptionData } from "src/utils/interface/types";
 import { Button } from "antd";
 import { AuthContext } from "src/contexts/auth";
-import { useRouter } from "next/router";
+import CheckoutModal from "src/components/checkout-modal";
 
 interface ProductElementProps {
 	product: Stripe.Product;
@@ -17,7 +17,6 @@ const Product = ({
 	product,
 	subscribedProduct,
 }: ProductElementProps): JSX.Element => {
-	const router = useRouter();
 	const { dbUser } = useContext(AuthContext);
 	const [priceLoading, setPriceLoading] = useState<boolean>(true);
 	const [priceError, setPriceError] = useState<ApiError | null>(null);
@@ -29,6 +28,7 @@ const Product = ({
 		null
 	);
 	async function CreateSubscription(price_id: string): Promise<void> {
+		setModalVisible(true);
 		const subscription = await fetch("/api/post/stripe/subscription/create", {
 			method: "POST",
 			headers: {
@@ -41,7 +41,10 @@ const Product = ({
 		}).then((res) => res.json());
 
 		if (subscription.success) {
-			router.push(`/payment?client_secret=${subscription.clientSecret}`);
+			setSubscriptionData({
+				id: subscription.subscriptionId,
+				client_secret: subscription.clientSecret,
+			});
 		} else {
 			setSubscriptionError(subscription.message);
 		}
@@ -69,7 +72,7 @@ const Product = ({
 				style={{
 					border: "1px solid #ccc",
 					borderRadius: "16px",
-					padding: "5rem",
+					padding: "4rem",
 					display: "flex",
 					flexDirection: "column",
 				}}
@@ -101,6 +104,15 @@ const Product = ({
 					)}
 				</div>
 			</div>
+			<CheckoutModal
+				isModalVisible={modalVisible}
+				onCancel={() => {
+					setSubscriptionData(null);
+					setModalVisible(false);
+				}}
+				subscription={subscriptionData}
+				subscriptionError={subscriptionError}
+			/>
 		</>
 	);
 };
