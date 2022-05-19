@@ -38,7 +38,7 @@ function Container({ children }: ContainerProps) {
 
 function MySubscription() {
 	const router = useRouter();
-	const { dbUser, getMongoUser } = useContext(AuthContext);
+	const { dbUser } = useContext(AuthContext);
 	const [loading, setLoading] = useState(false);
 	const [product, setProduct] = useState<Stripe.Product | null>(null);
 	const [subscription, setSubscription] = useState<Stripe.Subscription | null>(
