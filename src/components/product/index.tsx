@@ -46,6 +46,28 @@ const Product = ({ product }: ProductElementProps): JSX.Element => {
 		}
 	}
 
+	async function UpdateSubscription(
+		user: IUser,
+		price_id: string
+	): Promise<void> {
+		const subscription = await fetch("/api/post/stripe/subscription/update", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				priceId: price_id,
+				subscriptionId: user.subscriptionId,
+			}),
+		}).then((res) => res.json());
+
+		if (subscription.success) {
+			console.log("Subscription updated successfully");
+		} else {
+			setSubscriptionError(subscription.message);
+		}
+	}
+
 	async function StartTrial(user: IUser, price_id: string): Promise<void> {
 		setModalVisible(true);
 		const subscription = await fetch(
@@ -113,10 +135,14 @@ const Product = ({ product }: ProductElementProps): JSX.Element => {
 								<Button
 									type="primary"
 									onClick={() => {
-										CreateSubscription(dbUser, price.id);
+										if (dbUser?.subscriptionId) {
+											UpdateSubscription(dbUser, price.id);
+										} else {
+											CreateSubscription(dbUser, price.id);
+										}
 									}}
 								>
-									Subscribe
+									{dbUser?.subscriptionId !== null ? "Switch To This Plan" : "Subscribe"}
 								</Button>
 							)}
 							{product.metadata.canTrial === "true" && price && dbUser && (
