@@ -53,18 +53,29 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
 		if (event.type === "invoice.payment_succeeded") {
 			const invoice = event.data.object as Stripe.Invoice;
 			// Check billing_reason
-			if (invoice.billing_reason === "subscription_create") {
+			if (
+				invoice.billing_reason === "subscription_create" &&
+				invoice.payment_intent
+			) {
 				const subscriptionId = invoice.subscription;
 				const paymentIntentId = invoice.payment_intent;
 				// Retrieve the payment intent used to pay the subscription
 				const payment_intent = await stripe.paymentIntents.retrieve(
 					paymentIntentId as string
 				);
-				console.log("✅ Updating Payment Method");
-				// Update default payment method
-				/* 			const subscription = await stripe.subscriptions.update(subscription_id, {
-					default_payment_method: payment_intent.payment_method,
-				}); */
+
+				if (
+					payment_intent &&
+					typeof payment_intent.payment_method === "string" &&
+					subscriptionId &&
+					typeof subscriptionId === "string"
+				) {
+					console.log("✅ Updating Payment Method");
+					// Update default payment method
+					const subscription = await stripe.subscriptions.update(subscriptionId, {
+						default_payment_method: payment_intent.payment_method,
+					});
+				}
 			}
 		} else if (
 			event.type === "customer.subscription.created" ||

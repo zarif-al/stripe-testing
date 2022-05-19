@@ -4,7 +4,7 @@ import { IUser } from "src/utils/interface/types";
 const UserSchema = new mongoose.Schema<IUser>({
 	name: { type: String, requred: true },
 	email: { type: String, requred: true },
-	stripeId: String,
+	stripeId: { type: String, requred: true },
 	fireId: { type: String, requred: true },
 	subscriptionId: String,
 	subscriptionStatus: String,

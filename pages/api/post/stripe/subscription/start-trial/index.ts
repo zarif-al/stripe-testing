@@ -28,25 +28,14 @@ export default async function handler(
 						price: priceId,
 					},
 				],
-				payment_behavior: "default_incomplete",
+				trial_period_days: 14,
 				expand: ["latest_invoice.payment_intent"],
 			});
 
-			if (
-				"latest_invoice" in subscription &&
-				subscription.latest_invoice !== null &&
-				"payment_intent" in (subscription.latest_invoice as Invoice)
-			) {
-				const paymentIntent: Stripe.PaymentIntent = (
-					subscription.latest_invoice as Invoice
-				).payment_intent;
-				res.status(200).json({
-					success: true,
-					clientSecret: paymentIntent.client_secret,
-				});
-			} else {
-				res.status(500).json({ success: false, error: "Invalid Data." });
-			}
+			res.status(200).json({
+				success: true,
+				subscriptionId: subscription.id,
+			});
 		} catch (err: any) {
 			res.status(500).json({ success: false, message: err.message });
 		}

@@ -1,7 +1,7 @@
 export interface IUser {
 	name: string;
 	email: string;
-	stripeId: string | null;
+	stripeId: string;
 	fireId: string;
 	subscriptionId: string | null;
 	subscriptionStatus: string | null;

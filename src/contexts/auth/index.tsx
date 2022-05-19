@@ -26,6 +26,7 @@ export const AuthContext = createContext({
 	firebaseUser: {} as FirebaseUser | null | undefined,
 	dbUser: {} as IUser | null | undefined,
 	createMongoDBUser: (name: string) => {},
+	getMongoUser: (user: FirebaseUser) => {},
 });
 
 export default function AuthContextProvider({
@@ -246,6 +247,7 @@ export default function AuthContextProvider({
 				firebaseUser,
 				dbUser,
 				createMongoDBUser,
+				getMongoUser,
 			}}
 		>
 			{children}

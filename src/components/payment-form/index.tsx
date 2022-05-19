@@ -6,17 +6,13 @@ import {
 } from "@stripe/react-stripe-js";
 import { Button } from "antd";
 
-interface PaymentFormProps {
-	ready: boolean;
-	setReady: (ready: boolean) => void;
-}
-
-function PaymentForm({ ready, setReady }: PaymentFormProps): JSX.Element {
+function PaymentForm(): JSX.Element {
 	const stripe = useStripe();
 	const elements = useElements();
 
 	const [message, setMessage] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
+	const [ready, setReady] = useState(false);
 
 	const handleSubmit = async (e: React.SyntheticEvent) => {
 		e.preventDefault();
@@ -87,7 +83,11 @@ function PaymentForm({ ready, setReady }: PaymentFormProps): JSX.Element {
 						<span id="button-text">{isLoading ? <div>Loading</div> : "Pay now"}</span>
 					</Button>
 				)}
-				{message && <div id="payment-message">{message}</div>}
+				{message && (
+					<div id="payment-message" style={{ marginTop: "5px", color: "red" }}>
+						{message}
+					</div>
+				)}
 			</form>
 		</div>
 	);

@@ -3,10 +3,11 @@ import Image from "next/image";
 import Price from "src/components/price";
 import Stripe from "stripe";
 import { ApiError } from "src/utils/interface/responses";
-import { ISubscriptionData } from "src/utils/interface/types";
+import { ISubscriptionData, IUser } from "src/utils/interface/types";
 import { Button } from "antd";
 import { AuthContext } from "src/contexts/auth";
-import CheckoutModal from "src/components/checkout-modal";
+import { useRouter } from "next/router";
+import TrialActivationModal from "src/components/trial-activation-modal";
 
 interface ProductElementProps {
 	product: Stripe.Product;
@@ -17,18 +18,20 @@ const Product = ({
 	product,
 	subscribedProduct,
 }: ProductElementProps): JSX.Element => {
+	const router = useRouter();
 	const { dbUser } = useContext(AuthContext);
 	const [priceLoading, setPriceLoading] = useState<boolean>(true);
 	const [priceError, setPriceError] = useState<ApiError | null>(null);
 	const [price, setPrice] = useState<Stripe.Price | null>(null);
-	const [modalVisible, setModalVisible] = useState(false);
-	const [subscriptionData, setSubscriptionData] =
-		useState<ISubscriptionData | null>(null);
 	const [subscriptionError, setSubscriptionError] = useState<string | null>(
 		null
 	);
-	async function CreateSubscription(price_id: string): Promise<void> {
-		setModalVisible(true);
+	const [modalVisible, setModalVisible] = useState(false);
+
+	async function CreateSubscription(
+		user: IUser,
+		price_id: string
+	): Promise<void> {
 		const subscription = await fetch("/api/post/stripe/subscription/create", {
 			method: "POST",
 			headers: {
@@ -36,17 +39,37 @@ const Product = ({
 			},
 			body: JSON.stringify({
 				priceId: price_id,
-				customerId: dbUser?.stripeId,
+				customerId: user.stripeId,
 			}),
 		}).then((res) => res.json());
 
 		if (subscription.success) {
-			setSubscriptionData({
-				id: subscription.subscriptionId,
-				client_secret: subscription.clientSecret,
-			});
+			router.push(`/payment?client_secret=${subscription.clientSecret}`);
 		} else {
 			setSubscriptionError(subscription.message);
+		}
+	}
+
+	async function StartTrial(user: IUser, price_id: string): Promise<void> {
+		setModalVisible(true);
+		const subscription = await fetch(
+			"/api/post/stripe/subscription/start-trial",
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					priceId: price_id,
+					customerId: user.stripeId,
+				}),
+			}
+		).then((res) => res.json());
+
+		if (subscription.success) {
+			setModalVisible(true);
+		} else {
+			console.log(subscription.message);
 		}
 	}
 
@@ -90,29 +113,31 @@ const Product = ({
 								price={price}
 								product={product}
 							/>
-							{price && (
+							{price && dbUser && (
 								<Button
 									type="primary"
 									onClick={() => {
-										CreateSubscription(price.id);
+										CreateSubscription(dbUser, price.id);
 									}}
 								>
 									Subscribe
+								</Button>
+							)}
+							{product.metadata.canTrial === "true" && price && dbUser && (
+								<Button
+									type="primary"
+									onClick={() => {
+										StartTrial(dbUser, price.id);
+									}}
+								>
+									Start Trial
 								</Button>
 							)}
 						</div>
 					)}
 				</div>
 			</div>
-			<CheckoutModal
-				isModalVisible={modalVisible}
-				onCancel={() => {
-					setSubscriptionData(null);
-					setModalVisible(false);
-				}}
-				subscription={subscriptionData}
-				subscriptionError={subscriptionError}
-			/>
+			<TrialActivationModal isModalVisible={modalVisible} />
 		</>
 	);
 };

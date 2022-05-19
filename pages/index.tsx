@@ -75,7 +75,7 @@ const Home: NextPage = () => {
 			.catch((err) => {
 				console.log(err);
 			});
-	}, [dbUser]);
+	}, []);
 
 	/* 	useEffect(() => {
 		// Check to see if this is a redirect back from Checkout
