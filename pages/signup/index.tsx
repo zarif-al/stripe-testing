@@ -1,16 +1,32 @@
-import React, { useContext, useState } from "react";
-import Link from "next/link";
+import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from "src/contexts/auth";
+import { Steps, Button, message } from "antd";
+import SignUpForm from "src/components/sign-up-form";
+import AlmostThereForm from "src/components/almost-there-form";
+
+const { Step } = Steps;
 
 const SignUp = () => {
-	const { createFirebaseUser, error } = useContext(AuthContext);
-	const [name, setName] = useState("");
-	const [email, setEmail] = useState("");
-	const [password, setPassword] = useState("");
+	const { firebaseUser, dbUser, error } = useContext(AuthContext);
+	const [current, setCurrent] = useState(0);
+	const [loadingStep, setLoadingStep] = useState(false);
 
-	function onSubmit() {
-		createFirebaseUser(name, email, password);
-	}
+	useEffect(() => {
+		if (firebaseUser) {
+			setCurrent(1);
+		}
+	}, [firebaseUser, dbUser]);
+
+	const steps = [
+		{
+			title: "Sign Up",
+			content: <SignUpForm setLoadingStep={setLoadingStep} />,
+		},
+		{
+			title: "Almost There",
+			content: <AlmostThereForm setLoadingStep={setLoadingStep} />,
+		},
+	];
 
 	return (
 		<div
@@ -22,66 +38,57 @@ const SignUp = () => {
 				height: "100vh",
 			}}
 		>
-			<h2>Sign Up</h2>
-			<form
-				onSubmit={(e) => {
-					e.preventDefault();
-					onSubmit();
-				}}
+			<div
 				style={{
+					width: "600px",
 					display: "flex",
 					flexDirection: "column",
-					gap: "15px",
-					width: "20%",
+					justifyContent: "center",
+					alignItems: "center",
 				}}
 			>
-				<input
-					type="text"
-					placeholder="Name"
-					name="fname"
-					style={{ padding: "0.4rem" }}
-					value={name}
-					onChange={(e) => {
-						setName(e.target.value);
-					}}
-					required
-				/>
-				<input
-					type="text"
-					placeholder="Email"
-					style={{ padding: "0.4rem" }}
-					value={email}
-					onChange={(e) => {
-						setEmail(e.target.value);
-					}}
-					required
-				/>
-				<input
-					type="password"
-					placeholder="Password"
-					style={{ padding: "0.4rem" }}
-					onChange={(e) => {
-						setPassword(e.target.value);
-					}}
-					required
-				/>
-				<button type="submit" style={{ padding: "0.4rem", cursor: "pointer" }}>
-					Sign Up
-				</button>
-				<p
+				<Steps
+					current={current}
+					status={loadingStep ? "wait" : error ? "error" : "process"}
+				>
+					{steps.map((item) => (
+						<Step key={item.title} title={item.title} />
+					))}
+				</Steps>
+				<div
+					className="steps-content"
 					style={{
-						textAlign: "center",
-						margin: "2px 0px",
-						fontWeight: "500",
-						color: "red",
+						display: "flex",
+						flexDirection: "column",
+						width: "400px",
+						justifyContent: "center",
+						alignItems: "center",
+						marginTop: "20px",
 					}}
 				>
-					{error}
-				</p>
-			</form>
-			<p>
-				Already have an account? <Link href="/login">Login</Link>
-			</p>
+					{steps[current].content}
+				</div>
+				{/* 		<div className="steps-action">
+				{current < steps.length - 1 && (
+					<Button type="primary" onClick={() => next()}>
+						Next
+					</Button>
+				)}
+				{current === steps.length - 1 && (
+					<Button
+						type="primary"
+						onClick={() => message.success("Processing complete!")}
+					>
+						Done
+					</Button>
+				)}
+				{current > 0 && (
+					<Button style={{ margin: "0 8px" }} onClick={() => prev()}>
+						Previous
+					</Button>
+				)}
+			</div> */}
+			</div>
 		</div>
 	);
 };

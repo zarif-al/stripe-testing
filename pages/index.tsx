@@ -7,11 +7,16 @@ import Stripe from "stripe";
 import {
 	ApiError,
 	StripeProductsResponse,
-} from "src/utils/interface/apiResponses";
+} from "src/utils/interface/responses";
 import { useRouter } from "next/router";
 import { AuthContext } from "src/contexts/auth";
 import CustomModal from "src/components/modal";
 import Product from "src/components/product";
+
+// Loading stripe on the index page for better stability
+import getStripe from "src/utils/stripe";
+
+const stripePromise = getStripe();
 
 interface ProductElementProps {
 	product: Stripe.Product;
@@ -19,7 +24,7 @@ interface ProductElementProps {
 
 const Home: NextPage = () => {
 	const router = useRouter();
-	const { dbUser, UpdateUser } = useContext(AuthContext);
+	const { dbUser } = useContext(AuthContext);
 	const [products, setProducts] = useState<Stripe.Product[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [loadingProducts, setLoadingProducts] = useState(true);
@@ -27,7 +32,7 @@ const Home: NextPage = () => {
 	const [confirmingPayment, setConfirmingPayment] = useState(false);
 	const [modalVisible, setModalVisible] = useState(false);
 
-	async function GetSessionAndUpdate(session_id: string): Promise<void> {
+	/* 	async function GetSessionAndUpdate(session_id: string): Promise<void> {
 		const customer_id = await fetch("/api/session", {
 			method: "POST",
 			body: JSON.stringify({ session_id: session_id }),
@@ -35,16 +40,15 @@ const Home: NextPage = () => {
 			.then((res) => res.json())
 			.then((res) => res.customerId);
 
-		await UpdateUser(customer_id);
 		setConfirmingPayment(false);
 		router.push("/");
-	}
+	} */
 
-	useEffect(() => {
+	/* 	useEffect(() => {
 		async function GetCustomer(customer_id: string): Promise<void> {
 			await fetch("/api/customer", {
 				method: "POST",
-				body: JSON.stringify({ customer_id: dbUser!.stripeID }),
+				body: JSON.stringify({ customer_id: dbUser!.stripeId }),
 			})
 				.then((res) => res.json())
 				.then((res) => {
@@ -52,13 +56,13 @@ const Home: NextPage = () => {
 				});
 		}
 
-		if (dbUser && dbUser.stripeID) {
-			GetCustomer(dbUser.stripeID);
+		if (dbUser && dbUser.stripeId) {
+			GetCustomer(dbUser.stripeId);
 		}
-	}, [dbUser]);
+	}, [dbUser]); */
 
 	useEffect(() => {
-		fetch("/api/products")
+		fetch("/api/get/stripe/products")
 			.then((res) => res.json())
 			.then((data: ApiError | StripeProductsResponse) => {
 				if ("error" in data) {
@@ -71,9 +75,9 @@ const Home: NextPage = () => {
 			.catch((err) => {
 				console.log(err);
 			});
-	}, [dbUser]);
+	}, []);
 
-	useEffect(() => {
+	/* 	useEffect(() => {
 		// Check to see if this is a redirect back from Checkout
 		const query = new URLSearchParams(window.location.search);
 		if (query.get("success") && dbUser) {
@@ -90,7 +94,7 @@ const Home: NextPage = () => {
 				"Order canceled -- continue to shop around and checkout when you’re ready."
 			);
 		}
-	}, [dbUser]);
+	}, [dbUser]);  */
 
 	const productElements = (products: Stripe.Product[]) => {
 		const sortedProducts = products.sort((a, b) => {
@@ -132,30 +136,15 @@ const Home: NextPage = () => {
 		);
 	};
 
-	if (confirmingPayment) {
+	/* 	if (confirmingPayment) {
 		return <div className={styles.container}>Confirming payment...</div>;
-	}
+	} */
 
 	if (loadingProducts || !dbUser) {
 		return <div className={styles.container}>Loading...</div>;
 	} else {
 		return (
 			<div className={styles.container}>
-				<CustomModal
-					isModalVisible={modalVisible}
-					onCancel={() => {
-						setModalVisible(false);
-					}}
-				>
-					Hello Modal
-				</CustomModal>
-				<button
-					onClick={() => {
-						setModalVisible(true);
-					}}
-				>
-					Modal Button
-				</button>
 				<SubscriptionList />
 			</div>
 		);

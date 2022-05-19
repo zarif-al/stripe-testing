@@ -1,6 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
 
 const firebaseCredentials = {
 	apiKey: process.env.NEXT_PUBLIC_FIREBASE_PUBLIC_API_KEY,
@@ -15,9 +14,6 @@ const firebaseCredentials = {
 if (!getApps().length) {
 	initializeApp(firebaseCredentials);
 }
-
-// Initialize Cloud Firestore and get a reference to the service
-export const db = getFirestore(getApp());
 
 export const auth = getAuth();
 

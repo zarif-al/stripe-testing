@@ -3,26 +3,22 @@ import Link from "next/link";
 import { AuthContext } from "src/contexts/auth";
 import { Button } from "antd";
 
-const Login = () => {
-	const { signIn, error } = useContext(AuthContext);
+interface FormProps {
+	setLoadingStep: (bool: boolean) => void;
+}
+
+function SignUpForm({ setLoadingStep }: FormProps) {
+	const { createFirebaseUser, error } = useContext(AuthContext);
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 
 	function onSubmit() {
-		signIn(email, password);
+		setLoadingStep(true);
+		createFirebaseUser(email, password);
 	}
-
 	return (
-		<div
-			style={{
-				display: "flex",
-				flexDirection: "column",
-				justifyContent: "center",
-				alignItems: "center",
-				height: "100vh",
-			}}
-		>
-			<h2>Login</h2>
+		<>
+			<h2>Sign Up</h2>
 			<form
 				onSubmit={(e) => {
 					e.preventDefault();
@@ -32,7 +28,7 @@ const Login = () => {
 					display: "flex",
 					flexDirection: "column",
 					gap: "15px",
-					width: "20%",
+					width: "100%",
 				}}
 			>
 				<input
@@ -49,14 +45,13 @@ const Login = () => {
 					type="password"
 					placeholder="Password"
 					style={{ padding: "0.4rem" }}
-					value={password}
 					onChange={(e) => {
 						setPassword(e.target.value);
 					}}
 					required
 				/>
 				<Button type="primary" htmlType="submit">
-					Login
+					Sign Up
 				</Button>
 				<p
 					style={{
@@ -70,13 +65,10 @@ const Login = () => {
 				</p>
 			</form>
 			<p>
-				Dont&apos;t have an account?{" "}
-				<Link href="/signup" style={{ color: "blue" }}>
-					Sign Up
-				</Link>
+				Already have an account? <Link href="/login">Login</Link>
 			</p>
-		</div>
+		</>
 	);
-};
+}
 
-export default Login;
+export default SignUpForm;

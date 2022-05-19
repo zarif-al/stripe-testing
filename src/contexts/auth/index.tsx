@@ -1,23 +1,15 @@
 import React, { createContext, useState, useEffect } from "react";
-import { auth, db } from "src/auth/Firebase";
+import { auth } from "src/auth/Firebase";
 import {
 	createUserWithEmailAndPassword,
 	signInWithEmailAndPassword,
 	signOut,
-	User,
+	User as FirebaseUser,
 	UserCredential,
 	deleteUser,
 	onAuthStateChanged,
 } from "firebase/auth";
-import {
-	collection,
-	addDoc,
-	getDocs,
-	doc,
-	where,
-	query,
-	updateDoc,
-} from "firebase/firestore";
+import { IUser } from "src/utils/interface/types";
 import { useRouter } from "next/router";
 
 interface Props {
@@ -25,26 +17,16 @@ interface Props {
 	route: string;
 }
 
-interface IUser {
-	name: string;
-	email: string;
-	stripeID: string | null;
-	fireId: string;
-}
-
 export const AuthContext = createContext({
-	createFirebaseUser: (name: string, email: string, password: string) => {},
+	createFirebaseUser: (email: string, password: string) => {},
 	signIn: (email: string, password: string): void => {},
 	signOut: () => {},
 	error: {} as string | null,
 	setError: (error: string | null) => {},
-	firebaseUser: {} as User | null | undefined,
-	dbUser: {} as IUser | null,
-	UpdateUser: async (stripeId: string): Promise<boolean> => {
-		return new Promise((resolve, reject) => {
-			resolve(false);
-		});
-	},
+	firebaseUser: {} as FirebaseUser | null | undefined,
+	dbUser: {} as IUser | null | undefined,
+	createMongoDBUser: (name: string) => {},
+	getMongoUser: (user: FirebaseUser) => {},
 });
 
 export default function AuthContextProvider({
@@ -53,41 +35,95 @@ export default function AuthContextProvider({
 }: Props): JSX.Element {
 	const router = useRouter();
 	const [loading, setLoading] = useState(true);
-	const [firebaseUser, setFirebaseUser] = useState<User | null | undefined>(
-		undefined
-	);
+	const [firebaseUser, setFirebaseUser] = useState<
+		FirebaseUser | null | undefined
+	>(undefined);
 	const [error, setError] = useState<string | null>(null);
-	const [dbUser, setDbUser] = useState<IUser | null>(null);
+	const [dbUser, setDbUser] = useState<IUser | null | undefined>(undefined);
 
-	async function AddToDb(user: IUser, user_auth: User): Promise<void> {
+	async function createMongoDBUser(name: string): Promise<void> {
 		try {
-			await addDoc(collection(db, "users"), user);
-			await GetUser(user_auth);
-			setError(null);
-			router.push("/");
+			// First Create Stripe User
+			// TODO : If customer with this email exists in stripe then get that or delete it.
+			// Under normal circumstances this should not happen. This can only happen if user is deleted from
+			// MongoDB
+			const stripeUser = await fetch("/api/post/stripe/customer/create", {
+				method: "POST",
+				body: JSON.stringify({
+					name: name,
+					email: firebaseUser!.email,
+				}),
+				headers: new Headers({
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				}),
+			}).then((res) => res.json());
+
+			if (!stripeUser.success) {
+				setError("Failed to create Stripe User");
+				return;
+			}
+
+			// Create MongoUser
+			const newUser: IUser = {
+				name: name,
+				email: firebaseUser!.email!,
+				fireId: firebaseUser!.uid,
+				stripeId: stripeUser.customer_id,
+				subscriptionId: null,
+				subscriptionStatus: null,
+				productId: null,
+				cancelAtPeriodEnd: false,
+			};
+
+			const user = await fetch("/api/post/user/create", {
+				method: "POST",
+				body: JSON.stringify(newUser),
+				headers: new Headers({
+					"Content-Type": "application/json",
+					Accept: "application/json",
+				}),
+			}).then((res) => res.json());
+
+			if (!user.success) {
+				setError("Failed to create Mongo User");
+				return;
+			}
+
+			setDbUser(user.data[0]);
 		} catch (e: any) {
-			deleteUser(user_auth);
+			console.log(e);
+			setError(e.message);
+		}
+	}
+
+	async function getMongoUser(user: FirebaseUser): Promise<void> {
+		try {
+			const mongoUser = await fetch(`/api/get/mongo-user/${user.uid}`).then(
+				(res) => res.json()
+			);
+
+			if (mongoUser.success == true) {
+				setDbUser(mongoUser.data);
+			} else {
+				setDbUser(null);
+			}
+
+			if (mongoUser.error !== undefined) {
+				setDbUser(null);
+				setError(mongoUser.error);
+			}
+		} catch (e) {
 			console.log(e);
 		}
 	}
 
 	async function createFirebaseUser(
-		name: string,
 		email: string,
 		password: string
 	): Promise<void> {
-		await createUserWithEmailAndPassword(auth, email, password)
-			.then(async (userCredential: UserCredential) => {
-				const user_auth = userCredential.user;
-				const user_db: IUser = {
-					name,
-					email,
-					stripeID: null,
-					fireId: user_auth.uid,
-				};
-				await AddToDb(user_db, user_auth);
-			})
-			.catch((createUserError) => {
+		await createUserWithEmailAndPassword(auth, email, password).catch(
+			(createUserError) => {
 				if (createUserError.code === "auth/email-already-in-use") {
 					setError("This email address is already registered.");
 				} else if (createUserError.code === "auth/invalid-email") {
@@ -97,7 +133,8 @@ export default function AuthContextProvider({
 				} else if (createUserError.code === "auth/weak-password") {
 					setError("Please use a stronger password");
 				}
-			});
+			}
+		);
 	}
 
 	async function signIn(email: string, password: string): Promise<void> {
@@ -126,42 +163,12 @@ export default function AuthContextProvider({
 		await auth.signOut().catch((signOutError) => {
 			setError(signOutError.code);
 		});
-	}
-
-	async function GetUser(user: User) {
-		try {
-			const usersRef = collection(db, "users");
-			const q = query(usersRef, where("fireId", "==", user.uid));
-			const querySnap = await getDocs(q);
-			setDbUser(querySnap.docs[0].data() as IUser);
-		} catch (e) {
-			console.log(e);
-		}
-	}
-
-	async function UpdateUser(stripeId: string): Promise<boolean> {
-		try {
-			const usersRef = collection(db, "users");
-			const q = query(usersRef, where("email", "==", dbUser!.email));
-			const querySnap = await getDocs(q);
-			const userRef = doc(collection(db, "users"), querySnap.docs[0].id);
-			await updateDoc(userRef, {
-				stripeID: stripeId,
-			});
-			setDbUser({ ...(dbUser as IUser), stripeID: stripeId });
-			return true;
-		} catch (e: any) {
-			console.log(e);
-			return false;
-		}
+		setDbUser(undefined);
 	}
 
 	// Auth state change listener
-	onAuthStateChanged(auth, async (user: User | null) => {
+	onAuthStateChanged(auth, async (user: FirebaseUser | null) => {
 		if (user) {
-			if (!dbUser) {
-				await GetUser(user);
-			}
 			setFirebaseUser(user);
 		} else {
 			setFirebaseUser(null);
@@ -169,8 +176,15 @@ export default function AuthContextProvider({
 	});
 
 	useEffect(() => {
+		async function fetchMongoUser() {
+			if (firebaseUser) {
+				await getMongoUser(firebaseUser);
+			}
+		}
+
 		setError(null);
-		if (firebaseUser === undefined || dbUser === null) {
+
+		if (firebaseUser === undefined && dbUser === undefined) {
 			Loader();
 		}
 
@@ -184,15 +198,42 @@ export default function AuthContextProvider({
 
 		if (
 			firebaseUser !== null &&
-			(router.pathname === "/login" || router.pathname === "/signup")
+			firebaseUser !== undefined &&
+			dbUser === undefined
 		) {
-			setDbUser(null);
+			fetchMongoUser();
+		}
+
+		if (
+			firebaseUser !== null &&
+			dbUser === null &&
+			router.pathname !== "/signup"
+		) {
+			router.push("/signup");
+		}
+
+		if (
+			firebaseUser !== null &&
+			dbUser !== null &&
+			(router.pathname === "/signup" || router.pathname === "/login")
+		) {
 			router.push("/");
 		}
-	}, [route, router, firebaseUser]);
+	}, [route, router, firebaseUser, dbUser]);
 
 	function Loader(): JSX.Element {
-		return <div>Loading...</div>;
+		return (
+			<div
+				style={{
+					display: "flex",
+					justifyContent: "center",
+					alignItems: "center",
+					height: "100vh",
+				}}
+			>
+				Loading...
+			</div>
+		);
 	}
 
 	return (
@@ -205,7 +246,8 @@ export default function AuthContextProvider({
 				setError,
 				firebaseUser,
 				dbUser,
-				UpdateUser,
+				createMongoDBUser,
+				getMongoUser,
 			}}
 		>
 			{children}
