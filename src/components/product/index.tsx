@@ -11,13 +11,9 @@ import TrialActivationModal from "src/components/trial-activation-modal";
 
 interface ProductElementProps {
 	product: Stripe.Product;
-	subscribedProduct: string | undefined;
 }
 
-const Product = ({
-	product,
-	subscribedProduct,
-}: ProductElementProps): JSX.Element => {
+const Product = ({ product }: ProductElementProps): JSX.Element => {
 	const router = useRouter();
 	const { dbUser } = useContext(AuthContext);
 	const [priceLoading, setPriceLoading] = useState<boolean>(true);
@@ -103,7 +99,7 @@ const Product = ({
 				<h3 style={{ textAlign: "center" }}>{product.name}</h3>
 				<p style={{ textAlign: "center" }}>{product.description}</p>
 				<div style={{ display: "flex", justifyContent: "center" }}>
-					{subscribedProduct === product.id ? (
+					{dbUser?.productId === product.id ? (
 						<p>You are subscribed</p>
 					) : (
 						<div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
