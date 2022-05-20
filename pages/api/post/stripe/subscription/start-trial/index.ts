@@ -29,7 +29,6 @@ export default async function handler(
 					},
 				],
 				trial_period_days: 14,
-				expand: ["latest_invoice.payment_intent"],
 			});
 
 			res.status(200).json({
