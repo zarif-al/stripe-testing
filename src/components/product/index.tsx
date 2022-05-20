@@ -135,14 +135,18 @@ const Product = ({ product }: ProductElementProps): JSX.Element => {
 								<Button
 									type="primary"
 									onClick={() => {
-										if (dbUser?.subscriptionId) {
+										if (
+											dbUser?.subscriptionId &&
+											dbUser.subscriptionStatus === "active"
+										) {
 											UpdateSubscription(dbUser, price.id);
 										} else {
 											CreateSubscription(dbUser, price.id);
 										}
 									}}
 								>
-									{dbUser?.subscriptionId !== null ? "Switch To This Plan" : "Subscribe"}
+									{dbUser.subscriptionStatus !== "active" && "Subscribe"}
+									{dbUser.subscriptionStatus === "active" && "Switch to this plan"}
 								</Button>
 							)}
 							{product.metadata.canTrial === "true" && price && dbUser && (
