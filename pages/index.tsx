@@ -97,7 +97,21 @@ function Index() {
 
 	// If no subscription id is found, then the user is not subscribed to anything
 	if (dbUser && !dbUser.subscriptionId) {
-		return <Container>You have no active subscription</Container>;
+		return (
+			<Container>
+				<div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+					You have no active subscription
+					<Button
+						type="primary"
+						onClick={() => {
+							router.push("/pricing-page");
+						}}
+					>
+						Checkout Our Products
+					</Button>
+				</div>
+			</Container>
+		);
 	}
 
 	if (loading) {

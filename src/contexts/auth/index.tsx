@@ -217,7 +217,9 @@ export default function AuthContextProvider({
 		if (
 			firebaseUser !== null &&
 			dbUser !== null &&
-			(router.pathname === "/signup" || router.pathname === "/login")
+			(router.pathname === "/signup" ||
+				router.pathname === "/login" ||
+				router.pathname === "/pricing-page")
 		) {
 			if (selectedProduct) {
 				router.push("/redirect");
@@ -230,10 +232,11 @@ export default function AuthContextProvider({
 
 		if (price_id) {
 			setSelectedProduct(price_id);
+			if (firebaseUser !== null && dbUser !== null) {
+				router.push("/redirect");
+			}
 		}
-
-		console.log(price_id);
-	}, [route, router, firebaseUser, dbUser]);
+	}, [route, router, firebaseUser, dbUser, selectedProduct]);
 
 	console.log(selectedProduct);
 
