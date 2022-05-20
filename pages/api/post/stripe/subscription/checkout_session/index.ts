@@ -14,22 +14,33 @@ export default async function handler(
 			apiVersion: "2020-08-27",
 		});
 
-		const { subscriptionId } = req.body;
+		const { priceId, customerId } = req.body;
 
 		try {
-			if (!subscriptionId) {
+			if (!priceId || !customerId) {
 				res.status(500).json({ success: false, error: "Invalid Data." });
 			}
 
-			const cancelledSubscription: Stripe.Subscription =
-				await stripe.subscriptions.update(subscriptionId, {
-					cancel_at_period_end: true,
-				});
+			try {
+				const session: Stripe.Checkout.Session =
+					await stripe.checkout.sessions.create({
+						mode: "subscription",
+						customer: customerId,
+						line_items: [
+							{
+								price: priceId,
+								// For metered billing, do not pass quantity
+								quantity: 1,
+							},
+						],
+						success_url: "http://localhost:3000/?session_id={CHECKOUT_SESSION_ID}",
+						cancel_url: "http://localhost:3000/pricing-page",
+					});
 
-			if (cancelledSubscription) {
-				res.status(200).json({ success: true });
-			} else {
-				res.status(500).json({ success: false, error: "Invalid Data." });
+				res.json({ success: true, session_url: session.url });
+			} catch (err: any) {
+				console.log(err);
+				res.status(500).json({ success: false, error: err });
 			}
 		} catch (err: any) {
 			res.status(500).json({ success: false, message: err.message });

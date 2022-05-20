@@ -27,6 +27,8 @@ export const AuthContext = createContext({
 	dbUser: {} as IUser | null | undefined,
 	createMongoDBUser: (name: string) => {},
 	getMongoUser: (user: FirebaseUser) => {},
+	selectedProduct: {} as string | null,
+	setSelectedProduct: (product: string | null) => {},
 });
 
 export default function AuthContextProvider({
@@ -40,7 +42,7 @@ export default function AuthContextProvider({
 	>(undefined);
 	const [error, setError] = useState<string | null>(null);
 	const [dbUser, setDbUser] = useState<IUser | null | undefined>(undefined);
-
+	const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
 	async function createMongoDBUser(name: string): Promise<void> {
 		try {
 			// First Create Stripe User
@@ -217,9 +219,23 @@ export default function AuthContextProvider({
 			dbUser !== null &&
 			(router.pathname === "/signup" || router.pathname === "/login")
 		) {
+			if (selectedProduct) {
+				router.push("/redirect");
+			}
+
 			router.push("/");
 		}
+
+		const price_id = new URLSearchParams(window.location.search).get("price_id");
+
+		if (price_id) {
+			setSelectedProduct(price_id);
+		}
+
+		console.log(price_id);
 	}, [route, router, firebaseUser, dbUser]);
+
+	console.log(selectedProduct);
 
 	function Loader(): JSX.Element {
 		return (
@@ -248,6 +264,8 @@ export default function AuthContextProvider({
 				dbUser,
 				createMongoDBUser,
 				getMongoUser,
+				selectedProduct,
+				setSelectedProduct,
 			}}
 		>
 			{children}

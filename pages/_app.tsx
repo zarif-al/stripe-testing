@@ -7,13 +7,18 @@ import AuthContextProvider from "src/contexts/auth";
 
 function MyApp({ Component, pageProps }: AppProps) {
 	const router = useRouter();
-	return (
-		<AuthContextProvider route={router.pathname}>
-			<Layout>
-				<Component {...pageProps} />
-			</Layout>
-		</AuthContextProvider>
-	);
+
+	if (router.pathname === "/pricing-page") {
+		return <Component {...pageProps} />;
+	} else {
+		return (
+			<AuthContextProvider route={router.pathname}>
+				<Layout>
+					<Component {...pageProps} />
+				</Layout>
+			</AuthContextProvider>
+		);
+	}
 }
 
 export default MyApp;

@@ -1,98 +1,137 @@
-import type { NextPage } from "next";
-import React, { useContext, useState, useEffect } from "react";
-import Head from "next/head";
-import Image from "next/image";
-import styles from "../styles/Home.module.css";
-import Stripe from "stripe";
-import {
-	ApiError,
-	StripeProductsResponse,
-} from "src/utils/interface/responses";
-import { useRouter } from "next/router";
+import React, { useEffect, useContext, useState } from "react";
 import { AuthContext } from "src/contexts/auth";
-import CustomModal from "src/components/modal";
-import Product from "src/components/product";
+import Stripe from "stripe";
+import { IUser } from "src/utils/interface/types";
+import { Button } from "antd";
+import { useRouter } from "next/router";
 
-// Loading stripe on the index page for better stability
-import getStripe from "src/utils/stripe";
+// TODO : Cancel Subscription -> Complete
+// TODO : Pause Subscription -> Incomplete
+// TODO : Resume Subscription -> Incomplete
 
-const stripePromise = getStripe();
-
-interface ProductElementProps {
-	product: Stripe.Product;
+interface ContainerProps {
+	children: React.ReactNode;
 }
 
-const Home: NextPage = () => {
+function Container({ children }: ContainerProps) {
+	return (
+		<div
+			style={{
+				display: "flex",
+				justifyContent: "center",
+				alignItems: "center",
+				height: "90vh",
+			}}
+		>
+			<div
+				style={{
+					padding: "20px",
+					border: "1px solid #ccc",
+					borderRadius: "5px",
+				}}
+			>
+				{children}
+			</div>
+		</div>
+	);
+}
+
+function Index() {
 	const router = useRouter();
 	const { dbUser } = useContext(AuthContext);
-	const [products, setProducts] = useState<Stripe.Product[] | null>(null);
-	const [error, setError] = useState<string | null>(null);
-	const [loadingProducts, setLoadingProducts] = useState(true);
-	const [modalVisible, setModalVisible] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const [product, setProduct] = useState<Stripe.Product | null>(null);
+	const [subscription, setSubscription] = useState<Stripe.Subscription | null>(
+		null
+	);
+
+	async function getSubscription(user: IUser) {
+		const subscription = await fetch(
+			`/api/get/stripe/subscription/${user.subscriptionId}`
+		).then((res) => res.json());
+
+		setSubscription(subscription);
+	}
+
+	async function manageBilling(customerId: string) {
+		const session = await fetch(
+			"/api/post/stripe/subscription/billing_portal_create",
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ customerId }),
+			}
+		).then((res) => res.json());
+
+		if (session.success === true) {
+			router.push(session.session_url);
+		} else {
+			console.log("Session Creation Error");
+		}
+	}
+
+	async function getProduct(user: IUser) {
+		const product = await fetch(`/api/get/stripe/product/${user.productId}`).then(
+			(res) => res.json()
+		);
+
+		setProduct(product);
+	}
 
 	useEffect(() => {
-		fetch("/api/get/stripe/products")
-			.then((res) => res.json())
-			.then((data: ApiError | StripeProductsResponse) => {
-				if ("error" in data) {
-					setError(data.error);
-				} else {
-					setProducts(data.data);
-				}
-				setLoadingProducts(false);
-			})
-			.catch((err) => {
-				console.log(err);
-			});
-	}, []);
+		if (dbUser && dbUser.subscriptionId) {
+			setLoading(true);
+			getSubscription(dbUser);
+			getProduct(dbUser);
+		}
+	}, [dbUser]);
 
-	const productElements = (products: Stripe.Product[]) => {
-		const sortedProducts = products.sort((a, b) => {
-			return a.created - b.created;
-		});
+	useEffect(() => {
+		if (product && subscription) {
+			setLoading(false);
+			console.log(subscription);
+		}
+	}, [product, subscription]);
 
+	// If no subscription id is found, then the user is not subscribed to anything
+	if (dbUser && !dbUser.subscriptionId) {
+		return <Container>You have no active subscription</Container>;
+	}
+
+	if (loading) {
+		return <Container>Loading...</Container>;
+	}
+
+	if (!loading && product && subscription && dbUser) {
 		return (
-			<div style={{ display: "flex", flexDirection: "column" }}>
-				<h2 style={{ textAlign: "center" }}>Payment Plans</h2>
-				<div
-					style={{
-						display: "flex",
-						gap: "10px",
-					}}
-				>
-					{sortedProducts.map((product) => {
-						return <Product product={product} key={product.id} />;
-					})}
+			<Container>
+				<div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+					<span style={{ display: "flex", gap: "5px" }}>
+						<p style={{ fontWeight: "bold" }}>Product Name: </p>
+						<p>{product.name}</p>
+					</span>
+					<span style={{ display: "flex", gap: "5px" }}>
+						<p style={{ fontWeight: "bold" }}>Subscription Creation: </p>
+						<p>{new Date(subscription.created * 1000).toString()}</p>
+					</span>
+					<span style={{ display: "flex", gap: "5px" }}>
+						<p style={{ fontWeight: "bold" }}>Subscription Status: </p>
+						<p>{subscription.status}</p>
+					</span>
+					<Button
+						type="primary"
+						onClick={() => {
+							manageBilling(dbUser.stripeId);
+						}}
+					>
+						Manage Subscription
+					</Button>
 				</div>
-			</div>
-		);
-	};
-
-	const SubscriptionList = (): JSX.Element => {
-		return (
-			<>
-				{error && <div>{error}</div>}
-				{products && productElements(products)}
-				<a href="https://stripe.com/docs/testing" target="no_blank">
-					Test Cards
-				</a>
-			</>
-		);
-	};
-
-	/* 	if (confirmingPayment) {
-		return <div className={styles.container}>Confirming payment...</div>;
-	} */
-
-	if (loadingProducts || !dbUser) {
-		return <div className={styles.container}>Loading...</div>;
-	} else {
-		return (
-			<div className={styles.container}>
-				<SubscriptionList />
-			</div>
+			</Container>
 		);
 	}
-};
+}
 
-export default Home;
+export default Index;

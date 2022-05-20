@@ -14,27 +14,25 @@ export default async function handler(
 			apiVersion: "2020-08-27",
 		});
 
-		const { priceId, customerId } = req.body;
+		const { customerId } = req.body;
 
 		try {
-			if (!priceId || !customerId) {
+			if (!customerId) {
 				res.status(500).json({ success: false, error: "Invalid Data." });
 			}
 
-			const subscription: Stripe.Subscription = await stripe.subscriptions.create({
-				customer: customerId,
-				items: [
-					{
-						price: priceId,
-					},
-				],
-				trial_period_days: 14,
-			});
+			try {
+				const session: Stripe.BillingPortal.Session =
+					await stripe.billingPortal.sessions.create({
+						customer: customerId,
+						return_url: "http://localhost:3000/",
+					});
 
-			res.status(200).json({
-				success: true,
-				subscriptionId: subscription.id,
-			});
+				res.json({ success: true, session_url: session.url });
+			} catch (err: any) {
+				console.log(err);
+				res.status(500).json({ success: false, error: err });
+			}
 		} catch (err: any) {
 			res.status(500).json({ success: false, message: err.message });
 		}

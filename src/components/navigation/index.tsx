@@ -13,7 +13,7 @@ const Navigation = () => {
 					position: "sticky",
 					top: 0,
 					display: "flex",
-					justifyContent: "space-between",
+					justifyContent: "flex-end",
 					alignItems: "center",
 					height: "3rem",
 					backgroundColor: "#DCDCDC",
@@ -21,11 +21,6 @@ const Navigation = () => {
 					padding: "0 1rem",
 				}}
 			>
-				<div style={{ display: "flex", gap: "6px" }}>
-					<Link href="/">Home</Link>
-					<Link href="/my_subscription">My Subscription</Link>
-				</div>
-
 				<div>
 					<Button
 						type="primary"

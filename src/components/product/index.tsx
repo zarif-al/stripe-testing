@@ -5,9 +5,7 @@ import Stripe from "stripe";
 import { ApiError } from "src/utils/interface/responses";
 import { ISubscriptionData, IUser } from "src/utils/interface/types";
 import { Button } from "antd";
-import { AuthContext } from "src/contexts/auth";
 import { useRouter } from "next/router";
-import TrialActivationModal from "src/components/trial-activation-modal";
 
 interface ProductElementProps {
 	product: Stripe.Product;
@@ -15,63 +13,16 @@ interface ProductElementProps {
 
 const Product = ({ product }: ProductElementProps): JSX.Element => {
 	const router = useRouter();
-	const { dbUser } = useContext(AuthContext);
 	const [priceLoading, setPriceLoading] = useState<boolean>(true);
 	const [priceError, setPriceError] = useState<ApiError | null>(null);
 	const [price, setPrice] = useState<Stripe.Price | null>(null);
 	const [subscriptionError, setSubscriptionError] = useState<string | null>(
 		null
 	);
-	const [modalVisible, setModalVisible] = useState(false);
 
-	async function CreateSubscription(
-		user: IUser,
-		price_id: string
-	): Promise<void> {
-		const subscription = await fetch("/api/post/stripe/subscription/create", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				priceId: price_id,
-				customerId: user.stripeId,
-			}),
-		}).then((res) => res.json());
-
-		if (subscription.success) {
-			router.push(`/payment?client_secret=${subscription.clientSecret}`);
-		} else {
-			setSubscriptionError(subscription.message);
-		}
-	}
-
-	async function UpdateSubscription(
-		user: IUser,
-		price_id: string
-	): Promise<void> {
-		const subscription = await fetch("/api/post/stripe/subscription/update", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({
-				priceId: price_id,
-				subscriptionId: user.subscriptionId,
-			}),
-		}).then((res) => res.json());
-
-		if (subscription.success) {
-			console.log("Subscription updated successfully");
-		} else {
-			setSubscriptionError(subscription.message);
-		}
-	}
-
-	async function StartTrial(user: IUser, price_id: string): Promise<void> {
-		setModalVisible(true);
-		const subscription = await fetch(
-			"/api/post/stripe/subscription/start-trial",
+	async function GoToCheckout(user: IUser, price_id: string): Promise<void> {
+		const session = await fetch(
+			"/api/post/stripe/subscription/checkout_session",
 			{
 				method: "POST",
 				headers: {
@@ -84,11 +35,15 @@ const Product = ({ product }: ProductElementProps): JSX.Element => {
 			}
 		).then((res) => res.json());
 
-		if (subscription.success) {
-			setModalVisible(true);
+		if (session.success === false) {
+			console.log("Session Creation Failed");
 		} else {
-			console.log(subscription.message);
+			router.push(session.session_url);
 		}
+	}
+
+	function GoToRoot(price_id: string) {
+		router.push(`/?price_id=${price_id}`);
 	}
 
 	useEffect(() => {
@@ -121,49 +76,26 @@ const Product = ({ product }: ProductElementProps): JSX.Element => {
 				<h3 style={{ textAlign: "center" }}>{product.name}</h3>
 				<p style={{ textAlign: "center" }}>{product.description}</p>
 				<div style={{ display: "flex", justifyContent: "center" }}>
-					{dbUser?.productId === product.id ? (
-						<p>You are subscribed</p>
-					) : (
-						<div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-							<Price
-								priceLoading={priceLoading}
-								priceError={priceError}
-								price={price}
-								product={product}
-							/>
-							{price && dbUser && (
-								<Button
-									type="primary"
-									onClick={() => {
-										if (
-											dbUser?.subscriptionId &&
-											dbUser.subscriptionStatus === "active"
-										) {
-											UpdateSubscription(dbUser, price.id);
-										} else {
-											CreateSubscription(dbUser, price.id);
-										}
-									}}
-								>
-									{dbUser.subscriptionStatus !== "active" && "Subscribe"}
-									{dbUser.subscriptionStatus === "active" && "Switch to this plan"}
-								</Button>
-							)}
-							{product.metadata.canTrial === "true" && price && dbUser && (
-								<Button
-									type="primary"
-									onClick={() => {
-										StartTrial(dbUser, price.id);
-									}}
-								>
-									Start Trial
-								</Button>
-							)}
-						</div>
-					)}
+					<div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+						<Price
+							priceLoading={priceLoading}
+							priceError={priceError}
+							price={price}
+							product={product}
+						/>
+						{price && (
+							<Button
+								type="primary"
+								onClick={() => {
+									GoToRoot(price.id);
+								}}
+							>
+								Subscribe
+							</Button>
+						)}
+					</div>
 				</div>
 			</div>
-			<TrialActivationModal isModalVisible={modalVisible} />
 		</>
 	);
 };
