@@ -59,6 +59,7 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
 			) {
 				const subscriptionId = invoice.subscription;
 				const paymentIntentId = invoice.payment_intent;
+
 				// Retrieve the payment intent used to pay the subscription
 				const payment_intent = await stripe.paymentIntents.retrieve(
 					paymentIntentId as string
@@ -72,9 +73,21 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
 				) {
 					console.log("✅ Updating Payment Method");
 					// Update default payment method
-					const subscription = await stripe.subscriptions.update(subscriptionId, {
-						default_payment_method: payment_intent.payment_method,
-					});
+					try {
+						/* 			const subscription = await stripe.subscriptions.update(subscriptionId, {
+							default_payment_method: payment_intent.payment_method,
+						}); */
+						const customer = await stripe.customers.update(
+							invoice.customer as string,
+							{
+								invoice_settings: {
+									default_payment_method: payment_intent.payment_method,
+								},
+							}
+						);
+					} catch (err: any) {
+						console.log(`❌ Error message: ${err.message}`);
+					}
 				}
 			}
 		} else if (
