@@ -76,9 +76,7 @@ function Redirect() {
 		return (...args: [user: IUser, price_id: string]) => {
 			clearTimeout(timer);
 			timer = setTimeout(() => {
-				// TODO : FIX THIS, try making this null or undefined
-				//@ts-ignore
-				func.apply(this as any, args as [user: IUser, price_id: string]);
+				func.apply(null, args as [user: IUser, price_id: string]);
 			}, timeout);
 		};
 	}
