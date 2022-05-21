@@ -5,13 +5,8 @@ import { IUser } from "src/utils/interface/types";
 
 function Redirect() {
 	const router = useRouter();
-	const {
-		dbUser,
-		setSelectedProduct,
-		selectedProduct,
-		getMongoUser,
-		firebaseUser,
-	} = useContext(AuthContext);
+	const { dbUser, setSelectedProduct, selectedProduct, getMongoUser } =
+		useContext(AuthContext);
 	const [message, setMessage] = useState("");
 	const [startFetching, setStartFetching] = useState(false);
 
@@ -37,11 +32,11 @@ function Redirect() {
 			if (subscription.success) {
 				setMessage("Confirming Trial...");
 				const interval = setInterval(async () => {
-					user = await fetch(`/api/get/mongo-user/${firebaseUser.uid}`).then((res) =>
-						res.json()
+					const mongoUser = await fetch(`/api/get/mongo-user/${user.fireId}`).then(
+						(res) => res.json()
 					);
-					if (user.data.subscriptionId !== null) {
-						getMongoUser(firebaseUser);
+					if (mongoUser.data.subscriptionId !== null) {
+						getMongoUser(user.fireId);
 						setTimeout(() => {
 							router.push("/");
 						}, 1000);
@@ -76,12 +71,13 @@ function Redirect() {
 		}
 	}
 
-	function debounce(func, timeout = 500) {
-		let timer;
-		return (...args) => {
+	function debounce(func: any, timeout = 500) {
+		let timer: any;
+		return (...args: [user: IUser, price_id: string]) => {
 			clearTimeout(timer);
 			timer = setTimeout(() => {
-				func.apply(this, args);
+				//@ts-ignore
+				func.apply(this as any, args as [user: IUser, price_id: string]);
 			}, timeout);
 		};
 	}
@@ -102,7 +98,7 @@ function Redirect() {
 
 	useEffect(() => {
 		console.log("UseEffect Trigger");
-		if (selectedProduct && dbUser && firebaseUser) {
+		if (selectedProduct && dbUser) {
 			if (selectedProduct.trialMode === true) {
 				setMessage("Starting Trial...");
 				StartTrialDebounced(dbUser, selectedProduct.priceId);
@@ -119,7 +115,6 @@ function Redirect() {
 		setSelectedProduct,
 		GoToCheckoutDebounced,
 		StartTrialDebounced,
-		firebaseUser,
 	]);
 
 	return (

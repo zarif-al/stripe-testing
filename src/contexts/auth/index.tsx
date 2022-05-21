@@ -26,7 +26,7 @@ export const AuthContext = createContext({
 	firebaseUser: {} as FirebaseUser | null | undefined,
 	dbUser: {} as IUser | null | undefined,
 	createMongoDBUser: (name: string) => {},
-	getMongoUser: (user: FirebaseUser) => {},
+	getMongoUser: (firebaseId: string) => {},
 	selectedProduct: {} as ISelectedProduct | null,
 	setSelectedProduct: (product: ISelectedProduct | null) => {},
 });
@@ -101,9 +101,9 @@ export default function AuthContextProvider({
 		}
 	}
 
-	async function getMongoUser(user: FirebaseUser): Promise<void> {
+	async function getMongoUser(firebaseId: string): Promise<void> {
 		try {
-			const mongoUser = await fetch(`/api/get/mongo-user/${user.uid}`).then(
+			const mongoUser = await fetch(`/api/get/mongo-user/${firebaseId}`).then(
 				(res) => res.json()
 			);
 
@@ -183,7 +183,7 @@ export default function AuthContextProvider({
 
 		async function fetchMongoUser() {
 			if (firebaseUser) {
-				await getMongoUser(firebaseUser);
+				await getMongoUser(firebaseUser.uid);
 			}
 		}
 
