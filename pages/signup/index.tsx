@@ -3,6 +3,7 @@ import { AuthContext } from "src/contexts/auth";
 import { Steps, Button, message } from "antd";
 import SignUpForm from "src/components/sign-up-form";
 import AlmostThereForm from "src/components/almost-there-form";
+import Link from "next/link";
 
 const { Step } = Steps;
 
@@ -68,26 +69,12 @@ const SignUp = () => {
 				>
 					{steps[current].content}
 				</div>
-				{/* 		<div className="steps-action">
-				{current < steps.length - 1 && (
-					<Button type="primary" onClick={() => next()}>
-						Next
-					</Button>
-				)}
-				{current === steps.length - 1 && (
-					<Button
-						type="primary"
-						onClick={() => message.success("Processing complete!")}
-					>
-						Done
-					</Button>
-				)}
-				{current > 0 && (
-					<Button style={{ margin: "0 8px" }} onClick={() => prev()}>
-						Previous
-					</Button>
-				)}
-			</div> */}
+				<p style={{ fontWeight: "bold" }}>
+					Checkout our{" "}
+					<Link href="/pricing-page" style={{ color: "blue" }}>
+						Products
+					</Link>
+				</p>
 			</div>
 		</div>
 	);

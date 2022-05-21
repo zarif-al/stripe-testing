@@ -1,17 +1,27 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState, useCallback } from "react";
 import { AuthContext } from "src/contexts/auth";
 import { useRouter } from "next/router";
 import { IUser } from "src/utils/interface/types";
 
 function Redirect() {
 	const router = useRouter();
-	const { dbUser, setSelectedProduct, selectedProduct } =
-		useContext(AuthContext);
+	const {
+		dbUser,
+		setSelectedProduct,
+		selectedProduct,
+		getMongoUser,
+		firebaseUser,
+	} = useContext(AuthContext);
+	const [message, setMessage] = useState("");
+	const [startFetching, setStartFetching] = useState(false);
 
-	useEffect(() => {
-		async function GoToCheckout(user: IUser, price_id: string): Promise<void> {
-			const session = await fetch(
-				"/api/post/stripe/subscription/checkout_session",
+	async function StartTrial(user: IUser, price_id: string): Promise<void> {
+		// TODO : Figure out a better solution. Ex For new accounts same card.
+		if (user.activatedTrial) {
+			setMessage("Sorry, you have already used a trial");
+		} else {
+			const subscription = await fetch(
+				"/api/post/stripe/subscription/start-trial",
 				{
 					method: "POST",
 					headers: {
@@ -24,18 +34,93 @@ function Redirect() {
 				}
 			).then((res) => res.json());
 
-			if (session.success === false) {
-				console.log("Session Creation Failed");
+			if (subscription.success) {
+				setMessage("Confirming Trial...");
+				const interval = setInterval(async () => {
+					user = await fetch(`/api/get/mongo-user/${firebaseUser.uid}`).then((res) =>
+						res.json()
+					);
+					if (user.data.subscriptionId !== null) {
+						getMongoUser(firebaseUser);
+						setTimeout(() => {
+							router.push("/");
+						}, 1000);
+						clearInterval(interval);
+					}
+				}, 3000);
 			} else {
-				router.push(session.session_url);
+				console.log(subscription.message);
 			}
 		}
+	}
 
-		if (selectedProduct && dbUser) {
-			GoToCheckout(dbUser, selectedProduct);
+	async function GoToCheckout(user: IUser, price_id: string): Promise<void> {
+		const session = await fetch(
+			"/api/post/stripe/subscription/checkout_session",
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({
+					priceId: price_id,
+					customerId: user.stripeId,
+				}),
+			}
+		).then((res) => res.json());
+
+		if (session.success === false) {
+			console.log("Session Creation Failed");
+		} else {
+			router.push(session.session_url);
+		}
+	}
+
+	function debounce(func, timeout = 500) {
+		let timer;
+		return (...args) => {
+			clearTimeout(timer);
+			timer = setTimeout(() => {
+				func.apply(this, args);
+			}, timeout);
+		};
+	}
+
+	const GoToCheckoutDebounced = useCallback(
+		debounce((user: IUser, price_id: string) => {
+			GoToCheckout(user, price_id);
+		}),
+		[]
+	);
+
+	const StartTrialDebounced = useCallback(
+		debounce((user: IUser, price_id: string) => {
+			StartTrial(user, price_id);
+		}),
+		[]
+	);
+
+	useEffect(() => {
+		console.log("UseEffect Trigger");
+		if (selectedProduct && dbUser && firebaseUser) {
+			if (selectedProduct.trialMode === true) {
+				setMessage("Starting Trial...");
+				StartTrialDebounced(dbUser, selectedProduct.priceId);
+			} else {
+				setMessage("Redirecting to Stripe...");
+				GoToCheckoutDebounced(dbUser, selectedProduct.priceId);
+			}
 			setSelectedProduct(null);
 		}
-	}, [dbUser, router]);
+	}, [
+		dbUser,
+		router.pathname,
+		selectedProduct,
+		setSelectedProduct,
+		GoToCheckoutDebounced,
+		StartTrialDebounced,
+		firebaseUser,
+	]);
 
 	return (
 		<div
@@ -46,7 +131,7 @@ function Redirect() {
 				height: "90vh",
 			}}
 		>
-			Redirecting to stripe...
+			{message}
 		</div>
 	);
 }

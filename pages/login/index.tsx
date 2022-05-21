@@ -75,6 +75,12 @@ const Login = () => {
 					Sign Up
 				</Link>
 			</p>
+			<p style={{ fontWeight: "bold" }}>
+				Checkout our{" "}
+				<Link href="/pricing-page" style={{ color: "blue" }}>
+					Products
+				</Link>
+			</p>
 		</div>
 	);
 };

@@ -7,9 +7,15 @@ export interface IUser {
 	subscriptionStatus: string | null;
 	productId: string | null;
 	cancelAtPeriodEnd: boolean;
+	activatedTrial: boolean;
 }
 
 export interface ISubscriptionData {
 	id: string;
 	client_secret: string;
+}
+
+export interface ISelectedProduct {
+	priceId: string;
+	trialMode: boolean;
 }

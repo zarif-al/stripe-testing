@@ -20,30 +20,8 @@ const Product = ({ product }: ProductElementProps): JSX.Element => {
 		null
 	);
 
-	async function GoToCheckout(user: IUser, price_id: string): Promise<void> {
-		const session = await fetch(
-			"/api/post/stripe/subscription/checkout_session",
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					priceId: price_id,
-					customerId: user.stripeId,
-				}),
-			}
-		).then((res) => res.json());
-
-		if (session.success === false) {
-			console.log("Session Creation Failed");
-		} else {
-			router.push(session.session_url);
-		}
-	}
-
-	function GoToRoot(price_id: string) {
-		router.push(`/?price_id=${price_id}`);
+	function GoToRoot(price_id: string, trial: boolean) {
+		router.push(`/?price_id=${price_id}&trial=${trial}`);
 	}
 
 	useEffect(() => {
@@ -76,7 +54,7 @@ const Product = ({ product }: ProductElementProps): JSX.Element => {
 				<h3 style={{ textAlign: "center" }}>{product.name}</h3>
 				<p style={{ textAlign: "center" }}>{product.description}</p>
 				<div style={{ display: "flex", justifyContent: "center" }}>
-					<div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+					<div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
 						<Price
 							priceLoading={priceLoading}
 							priceError={priceError}
@@ -87,11 +65,32 @@ const Product = ({ product }: ProductElementProps): JSX.Element => {
 							<Button
 								type="primary"
 								onClick={() => {
-									GoToRoot(price.id);
+									GoToRoot(price.id, false);
 								}}
 							>
 								Subscribe
 							</Button>
+						)}
+						{product.metadata.canTrial === "true" && price && (
+							<div
+								style={{
+									display: "flex",
+									flexDirection: "column",
+									justifyContent: "center",
+									alignItems: "center",
+									gap: "4px",
+								}}
+							>
+								<div>OR</div>
+								<Button
+									type="primary"
+									onClick={() => {
+										GoToRoot(price.id, true);
+									}}
+								>
+									Start Trial
+								</Button>
+							</div>
 						)}
 					</div>
 				</div>

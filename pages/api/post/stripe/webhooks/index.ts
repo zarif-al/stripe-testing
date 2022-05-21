@@ -44,6 +44,7 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
 			res.status(400).send(`Webhook Error: ${err.message}`);
 			return;
 		}
+		console.log("✅ Received event:", event.type);
 		// Stripe recommends to send the response as soon as possible
 		res.json({ received: true });
 
@@ -53,43 +54,35 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
 		if (event.type === "invoice.payment_succeeded") {
 			const invoice = event.data.object as Stripe.Invoice;
 			// Check billing_reason
-			if (
-				invoice.billing_reason === "subscription_create" &&
-				invoice.payment_intent
-			) {
-				const subscriptionId = invoice.subscription;
-				const paymentIntentId = invoice.payment_intent;
+			// if (
+			// 	invoice.billing_reason === "subscription_create" &&
+			// 	invoice.payment_intent
+			// ) {
+			// 	const subscriptionId = invoice.subscription;
+			// 	const paymentIntentId = invoice.payment_intent;
 
-				// Retrieve the payment intent used to pay the subscription
-				const payment_intent = await stripe.paymentIntents.retrieve(
-					paymentIntentId as string
-				);
+			// 	// Retrieve the payment intent used to pay the subscription
+			// 	const payment_intent = await stripe.paymentIntents.retrieve(
+			// 		paymentIntentId as string
+			// 	);
 
-				if (
-					payment_intent &&
-					typeof payment_intent.payment_method === "string" &&
-					subscriptionId &&
-					typeof subscriptionId === "string"
-				) {
-					console.log("✅ Updating Payment Method");
-					// Update default payment method
-					try {
-						/* 			const subscription = await stripe.subscriptions.update(subscriptionId, {
-							default_payment_method: payment_intent.payment_method,
-						}); */
-						const customer = await stripe.customers.update(
-							invoice.customer as string,
-							{
-								invoice_settings: {
-									default_payment_method: payment_intent.payment_method,
-								},
-							}
-						);
-					} catch (err: any) {
-						console.log(`❌ Error message: ${err.message}`);
-					}
-				}
-			}
+			// 	if (
+			// 		payment_intent &&
+			// 		typeof payment_intent.payment_method === "string" &&
+			// 		subscriptionId &&
+			// 		typeof subscriptionId === "string"
+			// 	) {
+			// 		console.log("✅ Updating Payment Method");
+			// 		// Update default payment method
+			// 		try {
+			// 			const subscription = await stripe.subscriptions.update(subscriptionId, {
+			// 				default_payment_method: payment_intent.payment_method,
+			// 			});
+			// 		} catch (err: any) {
+			// 			console.log(`❌ Error message: ${err.message}`);
+			// 		}
+			// 	}
+			// }
 		} else if (
 			event.type === "customer.subscription.created" ||
 			event.type === "customer.subscription.updated"

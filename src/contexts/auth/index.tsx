@@ -9,7 +9,7 @@ import {
 	deleteUser,
 	onAuthStateChanged,
 } from "firebase/auth";
-import { IUser } from "src/utils/interface/types";
+import { IUser, ISelectedProduct } from "src/utils/interface/types";
 import { useRouter } from "next/router";
 
 interface Props {
@@ -27,8 +27,8 @@ export const AuthContext = createContext({
 	dbUser: {} as IUser | null | undefined,
 	createMongoDBUser: (name: string) => {},
 	getMongoUser: (user: FirebaseUser) => {},
-	selectedProduct: {} as string | null,
-	setSelectedProduct: (product: string | null) => {},
+	selectedProduct: {} as ISelectedProduct | null,
+	setSelectedProduct: (product: ISelectedProduct | null) => {},
 });
 
 export default function AuthContextProvider({
@@ -42,7 +42,8 @@ export default function AuthContextProvider({
 	>(undefined);
 	const [error, setError] = useState<string | null>(null);
 	const [dbUser, setDbUser] = useState<IUser | null | undefined>(undefined);
-	const [selectedProduct, setSelectedProduct] = useState<string | null>(null);
+	const [selectedProduct, setSelectedProduct] =
+		useState<ISelectedProduct | null>(null);
 	async function createMongoDBUser(name: string): Promise<void> {
 		try {
 			// First Create Stripe User
@@ -76,6 +77,7 @@ export default function AuthContextProvider({
 				subscriptionStatus: null,
 				productId: null,
 				cancelAtPeriodEnd: false,
+				activatedTrial: false,
 			};
 
 			const user = await fetch("/api/post/user/create", {
@@ -143,7 +145,6 @@ export default function AuthContextProvider({
 		await signInWithEmailAndPassword(auth, email, password)
 			.then(() => {
 				setError(null);
-				router.push("/");
 			})
 			.catch((signInError) => {
 				if (
@@ -178,13 +179,13 @@ export default function AuthContextProvider({
 	});
 
 	useEffect(() => {
+		setError(null);
+
 		async function fetchMongoUser() {
 			if (firebaseUser) {
 				await getMongoUser(firebaseUser);
 			}
 		}
-
-		setError(null);
 
 		if (firebaseUser === undefined && dbUser === undefined) {
 			Loader();
@@ -208,6 +209,7 @@ export default function AuthContextProvider({
 
 		if (
 			firebaseUser !== null &&
+			firebaseUser !== undefined &&
 			dbUser === null &&
 			router.pathname !== "/signup"
 		) {
@@ -217,28 +219,39 @@ export default function AuthContextProvider({
 		if (
 			firebaseUser !== null &&
 			dbUser !== null &&
+			firebaseUser !== undefined &&
+			dbUser !== undefined &&
 			(router.pathname === "/signup" ||
 				router.pathname === "/login" ||
 				router.pathname === "/pricing-page")
 		) {
 			if (selectedProduct) {
 				router.push("/redirect");
+			} else {
+				router.push("/");
 			}
-
-			router.push("/");
 		}
+	}, [
+		route,
+		router,
+		firebaseUser,
+		dbUser,
+		selectedProduct,
+		setSelectedProduct,
+		setError,
+	]);
 
+	useEffect(() => {
 		const price_id = new URLSearchParams(window.location.search).get("price_id");
-
+		const trialMode = new URLSearchParams(window.location.search).get("trial");
 		if (price_id) {
-			setSelectedProduct(price_id);
-			if (firebaseUser !== null && dbUser !== null) {
-				router.push("/redirect");
+			if (trialMode === "true") {
+				setSelectedProduct({ priceId: price_id, trialMode: true });
+			} else {
+				setSelectedProduct({ priceId: price_id, trialMode: false });
 			}
 		}
-	}, [route, router, firebaseUser, dbUser, selectedProduct]);
-
-	console.log(selectedProduct);
+	}, [setSelectedProduct]);
 
 	function Loader(): JSX.Element {
 		return (
