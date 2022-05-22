@@ -1,12 +1,12 @@
 import React, { useContext, useEffect, useState, useCallback } from "react";
 import { AuthContext } from "src/contexts/auth";
 import { useRouter } from "next/router";
-import { IUser } from "src/utils/interface/types";
+import { IUser, AuthContextTypes } from "src/utils/interface/types";
 
 function Redirect() {
 	const router = useRouter();
 	const { dbUser, setSelectedProduct, selectedProduct, getMongoUser } =
-		useContext(AuthContext);
+		useContext(AuthContext) as AuthContextTypes;
 	const [message, setMessage] = useState("");
 	const [startFetching, setStartFetching] = useState(false);
 

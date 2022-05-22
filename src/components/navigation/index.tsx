@@ -2,9 +2,12 @@ import React, { useContext } from "react";
 import { AuthContext } from "src/contexts/auth";
 import { Button } from "antd";
 import Link from "next/link";
+import { AuthContextTypes } from "src/utils/interface/types";
 
 const Navigation = () => {
-	const { signOut, firebaseUser, dbUser } = useContext(AuthContext);
+	const { signOut, firebaseUser, dbUser } = useContext(
+		AuthContext
+	) as AuthContextTypes;
 
 	if (firebaseUser && dbUser) {
 		return (

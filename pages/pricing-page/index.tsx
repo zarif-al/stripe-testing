@@ -11,10 +11,10 @@ import {
 import { useRouter } from "next/router";
 import { AuthContext } from "src/contexts/auth";
 import Product from "src/components/product";
+import { AuthContextTypes } from "src/utils/interface/types";
 
 function PricingPage() {
 	const router = useRouter();
-	const { dbUser } = useContext(AuthContext);
 	const [products, setProducts] = useState<Stripe.Product[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [loadingProducts, setLoadingProducts] = useState(true);
@@ -77,7 +77,7 @@ function PricingPage() {
 		return <div className={styles.container}>Confirming payment...</div>;
 	} */
 
-	if (loadingProducts || !dbUser) {
+	if (loadingProducts) {
 		return <div className={styles.container}>Loading...</div>;
 	} else {
 		return (

@@ -1,7 +1,7 @@
 import React, { useEffect, useContext, useState } from "react";
 import { AuthContext } from "src/contexts/auth";
 import Stripe from "stripe";
-import { IUser } from "src/utils/interface/types";
+import { IUser, AuthContextTypes } from "src/utils/interface/types";
 import { Button } from "antd";
 import { useRouter } from "next/router";
 
@@ -38,7 +38,7 @@ function Container({ children }: ContainerProps) {
 
 function Index() {
 	const router = useRouter();
-	const { dbUser } = useContext(AuthContext);
+	const { dbUser } = useContext(AuthContext) as AuthContextTypes;
 	const [loading, setLoading] = useState(false);
 	const [product, setProduct] = useState<Stripe.Product | null>(null);
 	const [subscription, setSubscription] = useState<Stripe.Subscription | null>(

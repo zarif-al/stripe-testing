@@ -4,11 +4,14 @@ import { Steps, Button, message } from "antd";
 import SignUpForm from "src/components/sign-up-form";
 import AlmostThereForm from "src/components/almost-there-form";
 import Link from "next/link";
+import { AuthContextTypes } from "src/utils/interface/types";
 
 const { Step } = Steps;
 
 const SignUp = () => {
-	const { firebaseUser, dbUser, error } = useContext(AuthContext);
+	const { firebaseUser, dbUser, error } = useContext(
+		AuthContext
+	) as AuthContextTypes;
 	const [current, setCurrent] = useState(0);
 	const [loadingStep, setLoadingStep] = useState(false);
 

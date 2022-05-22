@@ -2,9 +2,10 @@ import React, { useContext, useState } from "react";
 import Link from "next/link";
 import { AuthContext } from "src/contexts/auth";
 import { Button } from "antd";
+import { AuthContextTypes } from "src/utils/interface/types";
 
 const Login = () => {
-	const { signIn, error } = useContext(AuthContext);
+	const { signIn, error } = useContext(AuthContext) as AuthContextTypes;
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 

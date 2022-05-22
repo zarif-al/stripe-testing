@@ -2,13 +2,16 @@ import React, { useContext, useState } from "react";
 import Link from "next/link";
 import { AuthContext } from "src/contexts/auth";
 import { Button } from "antd";
+import { AuthContextTypes } from "src/utils/interface/types";
 
 interface FormProps {
 	setLoadingStep: (bool: boolean) => void;
 }
 
 function AlmostThereForm({ setLoadingStep }: FormProps) {
-	const { createMongoDBUser, error } = useContext(AuthContext);
+	const { createMongoDBUser, error } = useContext(
+		AuthContext
+	) as AuthContextTypes;
 	const [name, setName] = useState("");
 
 	function onSubmit() {

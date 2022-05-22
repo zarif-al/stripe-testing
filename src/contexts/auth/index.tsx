@@ -9,7 +9,11 @@ import {
 	deleteUser,
 	onAuthStateChanged,
 } from "firebase/auth";
-import { IUser, ISelectedProduct } from "src/utils/interface/types";
+import {
+	IUser,
+	ISelectedProduct,
+	AuthContextTypes,
+} from "src/utils/interface/types";
 import { useRouter } from "next/router";
 
 interface Props {
@@ -17,19 +21,7 @@ interface Props {
 	route: string;
 }
 
-export const AuthContext = createContext({
-	createFirebaseUser: (email: string, password: string) => {},
-	signIn: (email: string, password: string): void => {},
-	signOut: () => {},
-	error: {} as string | null,
-	setError: (error: string | null) => {},
-	firebaseUser: {} as FirebaseUser | null | undefined,
-	dbUser: {} as IUser | null | undefined,
-	createMongoDBUser: (name: string) => {},
-	getMongoUser: (firebaseId: string) => {},
-	selectedProduct: {} as ISelectedProduct | null,
-	setSelectedProduct: (product: ISelectedProduct | null) => {},
-});
+export const AuthContext = createContext<AuthContextTypes | null>(null);
 
 export default function AuthContextProvider({
 	children,
