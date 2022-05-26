@@ -71,15 +71,18 @@ function Redirect() {
 		}
 	}
 
-	function debounce(func: any, timeout = 500) {
-		let timer: any;
-		return (...args: [user: IUser, price_id: string]) => {
-			clearTimeout(timer);
-			timer = setTimeout(() => {
-				func.apply(null, args as [user: IUser, price_id: string]);
-			}, timeout);
-		};
-	}
+	function debounce(
+	    func: (user: IUser, price_id: string) => void,
+	    timeout = 500,
+	  ): (user: IUser, price_id: string) => void {
+	    let timer: ReturnType<typeof setTimeout>;
+	    return (...args: [user: IUser, price_id: string]) => {
+	      clearTimeout(timer);
+	      timer = setTimeout(() => {
+		func.apply(null, args as [user: IUser, price_id: string]);
+	      }, timeout);
+	    };
+	  } 
 
 	const GoToCheckoutDebounced = useCallback(
 		debounce((user: IUser, price_id: string) => {
